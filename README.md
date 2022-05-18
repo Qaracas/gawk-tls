@@ -34,13 +34,13 @@ $ cd fnt/;make;cd ..
 4. Fijar la variable de entorno [AWKPATH](https://www.gnu.org/software/gawk/manual/gawk.html#AWKPATH-Variable):
 
 ```bash
-(ssdv) export AWKPATH=${AWKPATH}:"$(pwd)/ejemplos"
+$ export AWKPATH=${AWKPATH}:"$(pwd)/ejemplos"
 ```
 
 5. Fijar la variable de entorno [AWKLIBPATH](https://www.gnu.org/software/gawk/manual/html_node/AWKLIBPATH-Variable.html)
 
 ```bash
-(ssdv) export AWKLIBPATH=${AWKLIBPATH}:"$(pwd)/lib"
+$ export AWKLIBPATH=${AWKLIBPATH}:"$(pwd)/lib"
 ```
 
 ## Referencias

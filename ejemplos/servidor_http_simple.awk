@@ -34,6 +34,8 @@
 
 @load "conector";
 
+@include "servidor_http_utilidades.awk";
+
 BEGIN {
     # HTTP/1.1 define la secuencia <retorno de carro> \r <salto de línea> \n
     # como delimitador para todos los elementos, excepto en el cuerpo del
@@ -49,13 +51,10 @@ BEGIN {
 
     while (1) {
         traepcli(canalTcpIP, cli);
-        print "[" PROCINFO["pid"] "]",
-            "Petición recibida desde " cli["dir"] ":" cli["pto"];
 
         # Procesar petición
         salir = 0;
         while (resul = (canalTcpIP |& getline)) {
-            print "<", $0;
             if ($1 == "GET" && $2 == "/salir")
                 salir = 1;
             if (length($0) == 0)
@@ -68,12 +67,15 @@ BEGIN {
         }
 
         # Mandar respuesta
-        print "[" PROCINFO["pid"] "]",
-            "Respuesta enviada hacia " cli["dir"] ":" cli["pto"];
-        print "> HTTP/1.1 200 Vale";
-        print "HTTP/1.1 200 Vale" |& canalTcpIP;
-        print "> Connection: close";
-        print "Connection: close" |& canalTcpIP;
+        respuesta[0] = "¡Hola soy un mini servidor!"
+
+        print "HTTP/1.1 200"                           |& canalTcpIP;
+        print "Content-Type: text/plain;charset=UTF-8" |& canalTcpIP;
+        print "Content-Length: " cnt_bytes(respuesta)  |& canalTcpIP;
+        print ""                                       |& canalTcpIP;
+        ORS = "";
+        print respuesta[0]                             |& canalTcpIP;
+        ORS = "\r\n";
 
         acabacli(canalTcpIP);
 
