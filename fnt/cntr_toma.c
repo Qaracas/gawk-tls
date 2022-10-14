@@ -283,6 +283,41 @@ reintenta_recibir_flujo:
     return tope->datos;
 }
 
+/* cntr_conecta_toma*/
+
+int
+cntr_conecta_toma(t_cntr_toma_es *toma)
+{
+    extern int errno;
+    cntr_limpia_error(errno);
+
+    struct addrinfo *rp;
+
+    for (rp = toma->infred; rp != NULL; rp = rp->ai_next) {
+        /* Crear toma de entrada y guardar df asociado a ella */
+        toma->cliente = socket(rp->ai_family, rp->ai_socktype,
+                     rp->ai_protocol);
+        if (toma->cliente == CNTR_DF_NULO)
+            continue;
+
+        if (connect(toma->cliente, rp->ai_addr, rp->ai_addrlen) != -1)
+            break;
+
+        close(toma->cliente);
+    }
+
+    cntr_borra_infred(toma); /* Ya no se necesita */
+
+    if (rp == NULL) {
+        cntr_error(CNTR_ERROR, cntr_msj_error("%s %s",
+                             "cntr_conecta_toma()",
+                             "fallo conectando con servidor"));
+        return CNTR_ERROR;
+    }
+
+    return CNTR_HECHO;
+}
+
 /* cntr_pon_a_escuchar_toma */
 
 int

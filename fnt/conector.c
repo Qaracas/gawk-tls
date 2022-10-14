@@ -213,12 +213,6 @@ haz_crea_toma(int nargs, awk_value_t *resultado,
                                      cntr_error.descripción));
     }
 
-    /* Fuera de ssdv esto no sería un error */
-    if (!rt->local) {
-        cntr_borra_ruta(rt);
-        fatal(ext_id, "creatoma: la ruta no es local");
-    }
-
     if (cntr_nueva_toma(rt) == NULL)
         fatal(ext_id, cntr_msj_error("%s %s",
                                      "creatoma:",
@@ -232,16 +226,29 @@ haz_crea_toma(int nargs, awk_value_t *resultado,
                                      "creatoma:",
                                      cntr_error.descripción));
 
-    if (cntr_nueva_infred(rt->nodo_local, rt->puerto_local,
-                          rt->toma) == CNTR_ERROR)
-        fatal(ext_id, cntr_msj_error("%s %s",
-                                     "creatoma:",
-                                     cntr_error.descripción));
+    if (rt->cliente){
+        if (cntr_nueva_infred_cliente(rt->nodo_remoto, rt->puerto_remoto,
+                              rt->toma) == CNTR_ERROR)
+            fatal(ext_id, cntr_msj_error("%s %s",
+                                         "creatoma:",
+                                         cntr_error.descripción));
 
-    if (cntr_pon_a_escuchar_toma(rt->toma) == CNTR_ERROR)
-        fatal(ext_id, cntr_msj_error("%s %s",
-                                     "creatoma:",
-                                     cntr_error.descripción));
+        if (cntr_conecta_toma(rt->toma) == CNTR_ERROR)
+            fatal(ext_id, cntr_msj_error("%s %s",
+                                         "creatoma:",
+                                         cntr_error.descripción));
+    } else {
+        if (cntr_nueva_infred_servidor(rt->nodo_local, rt->puerto_local,
+                              rt->toma) == CNTR_ERROR)
+            fatal(ext_id, cntr_msj_error("%s %s",
+                                         "creatoma:",
+                                         cntr_error.descripción));
+
+        if (cntr_pon_a_escuchar_toma(rt->toma) == CNTR_ERROR)
+            fatal(ext_id, cntr_msj_error("%s %s",
+                                         "creatoma:",
+                                         cntr_error.descripción));
+    }
 
     if (cntr_pon_ruta_en_serie(rt) == NULL) {
         cntr_borra_ruta(rt);

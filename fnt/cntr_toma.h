@@ -177,9 +177,16 @@ cntr_recibe_linea_toma(t_cntr_toma_es *toma, char **sdrt, size_t *tsr);
 char *
 cntr_recibe_flujo_toma(t_cntr_toma_es *toma, char **sdrt, size_t *tsr);
 
+/* cntr_conecta_toma --
+ *
+ * Conecta la toma asociada a una ruta de tipo cliente
+ */
+int
+cntr_conecta_toma(t_cntr_toma_es *toma);
+
 /* cntr_pon_a_escuchar_toma --
  *
- * Pone a escuchar la toma asociada a una ruta local
+ * Pone a escuchar la toma asociada a una ruta local (servidor)
  */
 
 int

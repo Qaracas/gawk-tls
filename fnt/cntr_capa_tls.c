@@ -68,8 +68,8 @@ cntr_arranque_global_capa_tls(t_capa_gnutls *capatls)
     /* Disponible desde GnuTLS 3.5.6. En versiones anteriores consultar:
      * gnutls_certificate_set_dh_params() */
 #if GNUTLS_VERSION_NUMBER >= 0x030506
-    /* Configura parámetros Diffie-Hellman para que los use un servidor 
-       con certificado*/
+    /* Configura parámetros Diffie-Hellman para que los use un servidor
+       con certificado */
     VERIFICA_ERROR(resul,
         gnutls_certificate_set_known_dh_params(capatls->credx509,
                                                GNUTLS_SEC_PARAM_MEDIUM),

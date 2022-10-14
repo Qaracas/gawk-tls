@@ -49,16 +49,16 @@ typedef enum cntr_verdad {
 #endif
 
 typedef struct cntr_ruta {
-    char            *nombre;        /* Identificador de ruta    */
-    char            *tipo;          /* Normalmente ired         */
-    char            *protocolo;     /* O capa (TCP/TLS)         */
-    char            *nodo_local;    /* Nombre o dir IP del nodo */
-    char            *puerto_local;  /* Puerto de E/S            */
-    char            *nodo_remoto;   /* Nombre o dir IP del nodo */
-    char            *puerto_remoto; /* Puerto remoto de E/S     */
-    t_cntr_toma_es  *toma;          /* Toma de datos de E/S     */
-    t_ctrn_verdad   local  : 1;     /* ¿Ruta local?             */
-    t_ctrn_verdad   segura : 1;     /* ¿Es segura?              */
+    char            *nombre;        /* Identificador de ruta         */
+    char            *tipo;          /* Normalmente ired              */
+    char            *protocolo;     /* O capa (TCP/TLS)              */
+    char            *nodo_local;    /* Nombre o dir IP del nodo      */
+    char            *puerto_local;  /* Puerto de E/S                 */
+    char            *nodo_remoto;   /* Nombre o dir IP del nodo      */
+    char            *puerto_remoto; /* Puerto remoto de E/S          */
+    t_cntr_toma_es  *toma;          /* Toma de datos de E/S          */
+    t_ctrn_verdad   cliente : 1;    /* Es de tipo cliente o servidor */
+    t_ctrn_verdad   segura  : 1;    /* Si protocolo = tls es segura  */
 } t_cntr_ruta;
 
 /* cntr_nueva_ruta --

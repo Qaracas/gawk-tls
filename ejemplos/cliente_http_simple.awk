@@ -44,14 +44,25 @@ BEGIN {
     # cero leeremos una cantidad TPM de 'bytes' cada vez.
     TPM = 0;
 
-    ServicioHttp = "/inet/tcp/0/0/" ARGV[1] "/" ARGV[2];
+    ServidorHttp = "es.wikipedia.org";
+    ServicioHttp = "/ired/tcp/0/0/" ServidorHttp "/80";
+    #ServicioHttp = "/ired/tls/0/0/" ServidorHttp "/443";
 
     creatoma(ServicioHttp);
 
     print "GET /wiki/Software_libre HTTP/1.1"  |& ServicioHttp;
+    print "Host: " ServidorHttp                |& ServicioHttp;
+    print                                      |& ServicioHttp;
 
-    while ((ServicioHttp |& getline) > 0)
+    while (resul = (ServicioHttp |& getline)) {
         print $0;
+        if (length($0) == 0)
+            break;
+        if (resul < 0) {
+            print ERRNO;
+            break;
+        }
+    }
 
     acabacli(ServicioHttp);
     dtrytoma(ServicioHttp);
