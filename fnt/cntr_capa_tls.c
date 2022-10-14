@@ -195,12 +195,12 @@ cntr_recibe_datos_capa_tls(t_capa_gnutls *capatls, int df_cliente, void *tope,
                            size_t bulto)
 {
     int resul;
-    cntr_limpia_error(resul);
 
     /* Asocia nueva toma del cliente a la sesión TLS */
     gnutls_transport_set_int(capatls->sesión, df_cliente);
 
     /* Dialoga TLS e inicializa los parámetros de sesión */
+    cntr_limpia_error(resul);
     BUCLE_VERIFICA(resul, gnutls_handshake(capatls->sesión));
     if (resul < 0) {
         close(df_cliente);
@@ -211,14 +211,27 @@ cntr_recibe_datos_capa_tls(t_capa_gnutls *capatls, int df_cliente, void *tope,
         return CNTR_REINTENTAR;
     }
 
-    if ((resul = gnutls_record_recv(capatls->sesión, tope, bulto)) < 0) {
-        if (resul != GNUTLS_E_AGAIN) {
-            cntr_error(resul, cntr_msj_error("%s %s",
-                                 "cntr_recibe_datos_capa_tls()",
-                                 gnutls_strerror(resul)));
+    cntr_limpia_error(resul);
+    for (;;) {
+        BUCLE_VERIFICA(resul,
+                       gnutls_record_recv(capatls->sesión, tope, bulto));
+        if (resul == 0) {
+            /* El interlocutor cierra la conexión TLS */
+            break;
+        } else if (   resul < 0
+                   && gnutls_error_is_fatal(resul) == 0) {
+            fprintf(stderr, "\n *** Alerta: %s\n",
+                    gnutls_strerror(resul));
+        } else if (resul < 0) {
+            cntr_error(resul, cntr_msj_error("%s %s %s %s",
+                                             "cntr_recibe_datos_capa_tls()",
+                                             "datos corruptos",
+                                             "cerrando conexión",
+                                             gnutls_strerror(resul)));
             return CNTR_ERROR;
         } else {
-            return 0;
+            /* resul > 0 */
+            break;
         }
     }
 
