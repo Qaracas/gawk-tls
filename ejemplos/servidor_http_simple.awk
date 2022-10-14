@@ -50,13 +50,16 @@ BEGIN {
     creatoma(canalTcpIP);
 
     while (1) {
-        traepcli(canalTcpIP, cli);
+        traepcli(canalTcpIP);
 
         # Procesar petición
         salir = 0;
+        error = 0;
         while (resul = (canalTcpIP |& getline)) {
             if ($1 == "GET" && $2 == "/salir")
                 salir = 1;
+            if ($1 == "GET" && $2 != "/hola")
+                error = 1
             if (length($0) == 0)
                 break;
         }
@@ -67,6 +70,13 @@ BEGIN {
         }
 
         # Mandar respuesta
+        if (error && !salir) {
+            print "HTTP/1.1 404"                       |& canalTcpIP;
+            print "Connection: close"                  |& canalTcpIP;
+            acabacli(canalTcpIP);
+            continue;
+        }
+
         respuesta[0] = "¡Hola soy un mini servidor!"
 
         print "HTTP/1.1 200"                           |& canalTcpIP;

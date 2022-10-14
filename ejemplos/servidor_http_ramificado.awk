@@ -64,6 +64,8 @@ BEGIN {
     }
 
     # Procesar petición
+    respuesta[0] = "¡Hola soy un mini servidor!"
+
     print "[" PROCINFO["pid"] "]",
         "Petición recibida desde " cli["dir"] ":" cli["pto"];
     while (resul = (canalTcpIP |& getline)) {
@@ -78,11 +80,7 @@ BEGIN {
     }
 
     # Mandar respuesta
-    print "[" PROCINFO["pid"] "]",
-        "Respuesta enviada hacia " cli["dir"] ":" cli["pto"];
-    print "> HTTP/1.1 200 Vale";
     print "HTTP/1.1 200 Vale" |& canalTcpIP;
-    print "> Connection: close";
     print "Connection: close" |& canalTcpIP;
 
     acabacli(canalTcpIP);
