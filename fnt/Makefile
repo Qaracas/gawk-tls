@@ -8,9 +8,9 @@ EXT = conector
 LOJ = $(EXT) cntr_ruta cntr_toma cntr_stoma cntr_tope cntr_serie cntr_defcom cntr_capa_tls
 OJS := $(foreach i,$(LOJ),$(i).o)
 
-UNAME := $(shell uname)
+UNAME := $(shell uname -o)
 
-ifeq ($(UNAME), CYGWIN_NT-10.0)
+ifeq ($(UNAME), Cygwin)
 SUFLIB = .dll
 endif
 ifeq ($(UNAME), Linux)
