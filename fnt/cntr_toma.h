@@ -82,7 +82,9 @@ typedef void (*func_para)(t_capa_gnutls *capatls);
 
 typedef int (*func_inicia)(t_capa_gnutls *capatls);
 
-typedef int (*func_cierra)(t_capa_gnutls *capatls, int cliente, int df_toma);
+typedef int (*func_sesión)(t_capa_gnutls *capatls, char *nodo);
+
+typedef int (*func_cierra)(t_capa_gnutls *capatls, int df_toma);
 
 /* Para cargar los datos que se envían o reciben de la toma */
 
@@ -104,12 +106,13 @@ typedef struct cntr_toma_es {
     t_cntr_dts_toma *pila;    /* Pila de datos entre el programa y la toma */
     struct addrinfo *infred;  /* Información de red TCP/IP (API Linux)     */
     t_ctrn_verdad   local;    /* ¿Toma local?                              */
-    func_envía      envia;    /* Puntero a función de envío de datos       */
-    func_recibe     recibe;   /* Puntero a función de recepción de datos   */
-    func_inicia     inicia_tls;      /* Ptr. a función inicio global TLS   */
-    func_para       para_tls;        /* Ptr. a función parada global TLS   */
-    func_inicia     ini_sesión_tls;  /* Ptr. a función inició sesión TLS   */
-    func_cierra     cierra_toma_tls; /* Ptr. a función cierre toma TLS     */
+    func_envía      envia;             /* Envío de datos                   */
+    func_recibe     recibe;            /* Recepción de datos               */
+    func_inicia     inicia_tls;        /* Inicio global TLS                */
+    func_para       para_tls;          /* Parada global TLS                */
+    func_sesión     ini_sesión_tls;    /* Inició sesión TLS                */
+    func_cierra     cierra_tm_cli_tls; /* Cierre toma TLS cliente          */
+    func_cierra     cierra_tm_srv_tls; /* Cierre toma TLS servidor         */
 } t_cntr_toma_es;
 
 /* cntr_nueva_toma --
@@ -182,7 +185,7 @@ cntr_recibe_flujo_toma(t_cntr_toma_es *toma, char **sdrt, size_t *tsr);
  * Conecta la toma asociada a una ruta de tipo cliente
  */
 int
-cntr_conecta_toma(t_cntr_toma_es *toma);
+cntr_conecta_toma(t_cntr_toma_es *toma, char *nodo);
 
 /* cntr_pon_a_escuchar_toma --
  *
@@ -216,13 +219,5 @@ cntr_cierra_toma_cliente(t_cntr_toma_es *toma, int forzar);
 
 int
 cntr_cierra_toma_servidor(t_cntr_toma_es *toma, int forzar);
-
-/* cntr_cierra_toma --
- *
- * Cierra toma de una manera específica ya sea cliente o servidor
- */
-
-int
-cntr_cierra_toma(t_cntr_toma_es *toma, int df_toma, int cliente, int forzar);
 
 #endif /* TOMA_H */

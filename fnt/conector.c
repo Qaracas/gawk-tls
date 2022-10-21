@@ -233,7 +233,7 @@ haz_crea_toma(int nargs, awk_value_t *resultado,
                                          "creatoma:",
                                          cntr_error.descripción));
 
-        if (cntr_conecta_toma(rt->toma) == CNTR_ERROR)
+        if (cntr_conecta_toma(rt->toma, rt->nodo_remoto) == CNTR_ERROR)
             fatal(ext_id, cntr_msj_error("%s %s",
                                          "creatoma:",
                                          cntr_error.descripción));

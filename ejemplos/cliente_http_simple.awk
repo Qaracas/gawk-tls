@@ -45,8 +45,8 @@ BEGIN {
     TPM = 0;
 
     ServidorHttp = "es.wikipedia.org";
-    ServicioHttp = "/ired/tcp/0/0/" ServidorHttp "/80";
-    #ServicioHttp = "/ired/tls/0/0/" ServidorHttp "/443";
+    #ServicioHttp = "/ired/tcp/0/0/" ServidorHttp "/80";
+    ServicioHttp = "/ired/tls/0/0/" ServidorHttp "/443";
 
     creatoma(ServicioHttp);
 
@@ -54,9 +54,25 @@ BEGIN {
     print "Host: " ServidorHttp                |& ServicioHttp;
     print                                      |& ServicioHttp;
 
+    # Cabecera de la respuesta HTTP
     while (resul = (ServicioHttp |& getline)) {
         print $0;
+        if (tolower($1) == "content-length:")
+            lgtd = $2;
         if (length($0) == 0)
+            break;
+        if (resul < 0) {
+            print ERRNO;
+            break;
+        }
+    }
+
+    # Cuerpo de la respuesta HTTP
+    TPM = 1024;
+    ORS = "";
+    while (resul = (ServicioHttp |& getline)) {
+        print $0;
+        if ($0 ~ /<\/html>$/)
             break;
         if (resul < 0) {
             print ERRNO;

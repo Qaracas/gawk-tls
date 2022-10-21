@@ -82,22 +82,34 @@ cntr_nueva_toma(t_cntr_ruta *ruta)
     if (ruta->segura) {
         cntr_asigmem(ruta->toma->gtls, t_capa_gnutls *,
                      sizeof(t_capa_gnutls), "cntr_nueva_toma");
-        ruta->toma->envia = &cntr_envia_datos_capa_tls;
-        ruta->toma->recibe = &cntr_recibe_datos_capa_tls;
-        ruta->toma->inicia_tls = &cntr_arranque_global_capa_tls;
-        ruta->toma->para_tls = &cntr_parada_global_capa_tls;
-        ruta->toma->ini_sesión_tls =
-            &cntr_inicia_sesion_capa_tls_servidor;
-        ruta->toma->cierra_toma_tls = &cntr_cierra_toma_tls;
+        if (ruta->cliente) {
+            ruta->toma->inicia_tls = &cntr_arranque_global_capa_tls_cliente;
+            ruta->toma->ini_sesión_tls =
+                &cntr_inicia_sesion_capa_tls_cliente;
+            ruta->toma->envia = &cntr_dialoga_envia_datos_capa_tls;
+            ruta->toma->recibe = &cntr_recibe_datos_capa_tls;
+            ruta->toma->para_tls = &cntr_parada_global_capa_tls_noprds;
+            ruta->toma->cierra_tm_cli_tls = &cntr_cierra_toma_tls_cliente;
+            ruta->toma->cierra_tm_srv_tls = &cntr_cierra_toma_tls_servidor;
+        } else {
+            ruta->toma->inicia_tls = &cntr_arranque_global_capa_tls_servidor;
+            ruta->toma->ini_sesión_tls =
+                &cntr_inicia_sesion_capa_tls_servidor;
+            ruta->toma->envia = &cntr_envia_datos_capa_tls;
+            ruta->toma->recibe = &cntr_dialoga_recibe_datos_capa_tls;
+            ruta->toma->para_tls = &cntr_parada_global_capa_tls;
+            ruta->toma->cierra_tm_cli_tls = &cntr_cierra_toma_tls_cliente;
+            ruta->toma->cierra_tm_srv_tls = &cntr_cierra_toma_tls_servidor;
+        }
     } else {
         ruta->toma->gtls = NULL;
+        ruta->toma->inicia_tls = &cntr_falso_arranque_global_capa_tls;
+        ruta->toma->ini_sesión_tls = &cntr_falso_inicio_sesion_capa_tls;
         ruta->toma->envia = &cntr_envia_datos;
         ruta->toma->recibe = &cntr_recibe_datos;
-        ruta->toma->inicia_tls = &cntr_falso_arranque_global_capa_tls;
         ruta->toma->para_tls = &cntr_falsa_parada_global_capa_tls;
-        ruta->toma->ini_sesión_tls =
-            &cntr_falso_inicio_sesion_capa_tls_servidor;
-        ruta->toma->cierra_toma_tls = &cntr_falso_cierre_toma_tls;
+        ruta->toma->cierra_tm_cli_tls = &cntr_falso_cierre_toma_tls;
+        ruta->toma->cierra_tm_srv_tls = &cntr_falso_cierre_toma_tls;
     }
 
     return ruta->toma;
@@ -286,12 +298,21 @@ reintenta_recibir_flujo:
 /* cntr_conecta_toma*/
 
 int
-cntr_conecta_toma(t_cntr_toma_es *toma)
+cntr_conecta_toma(t_cntr_toma_es *toma, char *nodo)
 {
     extern int errno;
     cntr_limpia_error(errno);
 
     struct addrinfo *rp;
+
+    /* Se inicia globalmente capa TLS si aplica */
+    if ((*toma->inicia_tls)(toma->gtls) != CNTR_HECHO)
+        return CNTR_ERROR;
+
+    /* Inicia sesión TLS si aplica */
+    if ((*toma->ini_sesión_tls)(toma->gtls, nodo) != CNTR_HECHO) {
+        return CNTR_ERROR;
+    }
 
     for (rp = toma->infred; rp != NULL; rp = rp->ai_next) {
         /* Crear toma de entrada y guardar df asociado a ella */
@@ -524,7 +545,7 @@ cntr_trae_primer_cliente_toma(t_cntr_toma_es *toma, struct sockaddr *cliente)
         /* Atender tomas con eventos de entrada pendientes */
         if (FD_ISSET(toma->servidor, &lst_df_sondear_lect)) {
             /* Inicia sesión TLS si aplica */
-            if ((*toma->ini_sesión_tls)(toma->gtls) != CNTR_HECHO) {
+            if ((*toma->ini_sesión_tls)(toma->gtls, NULL) != CNTR_HECHO) {
                 return CNTR_ERROR;
             }
             /* Extraer primera conexión de la cola de conexiones */
@@ -556,26 +577,28 @@ sondea_salida:
 }
 #endif
 
+#define cambia_no_bloqueante call function
+
 /* cntr_cierra_toma_cliente */
 
 int
 cntr_cierra_toma_cliente(t_cntr_toma_es *toma, int forzar)
 {
-    return cntr_cierra_toma(toma, toma->cliente, 1, forzar);
+    (void) forzar;
+
+    /* Termina la conexión TLS si aplica */
+    if (   (*toma->cierra_tm_cli_tls)(toma->gtls, toma->cliente)
+        != CNTR_HECHO) {
+        return CNTR_ERROR;
+    }
+
+    return CNTR_HECHO;
 }
 
 /* cntr_cierra_toma_servidor */
 
 int
 cntr_cierra_toma_servidor(t_cntr_toma_es *toma, int forzar)
-{
-    return cntr_cierra_toma(toma, toma->servidor, 0, forzar);
-}
-
-/* cntr_cierra_toma */
-
-int
-cntr_cierra_toma(t_cntr_toma_es *toma, int df_toma, int cliente, int forzar)
 {
     extern int errno;
     cntr_limpia_error(errno);
@@ -585,17 +608,17 @@ cntr_cierra_toma(t_cntr_toma_es *toma, int df_toma, int cliente, int forzar)
         struct linger so_linger;
         so_linger.l_onoff  = 1;
         so_linger.l_linger = 0;
-        if (setsockopt(df_toma, SOL_SOCKET, SO_LINGER, &so_linger,
+        if (setsockopt(toma->servidor, SOL_SOCKET, SO_LINGER, &so_linger,
                        sizeof(so_linger)) < 0) {
             cntr_error(errno, cntr_msj_error("%s %s",
-                                             "cntr_cierra_toma()",
+                                             "cntr_cierra_toma_servidor()",
                                              strerror(errno)));
             return CNTR_ERROR;
         }
     }
 
     /* Termina la conexión TLS si aplica */
-    if (   (*toma->cierra_toma_tls)(toma->gtls, cliente, df_toma)
+    if (   (*toma->cierra_tm_srv_tls)(toma->gtls, toma->servidor)
         != CNTR_HECHO) {
         return CNTR_ERROR;
     }

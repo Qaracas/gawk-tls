@@ -75,14 +75,21 @@ typedef struct capa_gnutls {
     t_ctrn_verdad                    sesión_iniciada : 1;
 } t_capa_gnutls;
 
-
-/* cntr_arranque_global_capa_tls --
+/* cntr_arranque_global_capa_tls_cliente --
  *
- * Inicializa parámetros globales de la capa TLS
+ * Inicializa parámetros globales de la capa TLS (cliente)
  */
 
 int
-cntr_arranque_global_capa_tls(t_capa_gnutls *capatls);
+cntr_arranque_global_capa_tls_cliente(t_capa_gnutls *capatls);
+
+/* cntr_arranque_global_capa_tls_servidor --
+ *
+ * Inicializa parámetros globales de la capa TLS (servidor)
+ */
+
+int
+cntr_arranque_global_capa_tls_servidor(t_capa_gnutls *capatls);
 
 /* cntr_falso_arranque_global_capa_tls --
  *
@@ -99,6 +106,14 @@ cntr_falso_arranque_global_capa_tls(t_capa_gnutls *capatls);
 void
 cntr_parada_global_capa_tls(t_capa_gnutls *capatls);
 
+/* cntr_parada_global_capa_tls_noprds --
+ *
+ * Sin la función de borrado de la prioridad GnuTLS (cliente)
+ */
+
+void
+cntr_parada_global_capa_tls_noprds(t_capa_gnutls *capatls);
+
 /* cntr_falsa_parada_global_capa_tls --
  *
  * Falsa función
@@ -107,21 +122,29 @@ cntr_parada_global_capa_tls(t_capa_gnutls *capatls);
 void
 cntr_falsa_parada_global_capa_tls(t_capa_gnutls *capatls);
 
-/* cntr_inicia_sesion_capa_tls_servidor --
+/* cntr_inicia_sesion_capa_tls_cliente --
  *
- * Inicia sesión TLS en toma local de escucha
+ * Inicia sesión TLS en toma antes de conectar con el nodo remoto (cliente)
  */
 
 int
-cntr_inicia_sesion_capa_tls_servidor(t_capa_gnutls *capatls);
+cntr_inicia_sesion_capa_tls_cliente(t_capa_gnutls *capatls, char *nodo);
 
-/* cntr_falso_inicio_sesion_capa_tls_servidor --
+/* cntr_inicia_sesion_capa_tls_servidor --
+ *
+ * Inicia sesión TLS en toma local de escucha (servidor)
+ */
+
+int
+cntr_inicia_sesion_capa_tls_servidor(t_capa_gnutls *capatls, char *nodo);
+
+/* cntr_falso_inicio_sesion_capa_tls --
  *
  * Falsa función
  */
 
 int
-cntr_falso_inicio_sesion_capa_tls_servidor(t_capa_gnutls *capatls);
+cntr_falso_inicio_sesion_capa_tls(t_capa_gnutls *capatls, char *nodo);
 
 /* cntr_finaliza_sesion_capa_tls --
  *
@@ -130,6 +153,23 @@ cntr_falso_inicio_sesion_capa_tls_servidor(t_capa_gnutls *capatls);
 
 void
 cntr_finaliza_sesion_capa_tls(t_capa_gnutls *capatls);
+
+/* cntr_inicia_diálogo_tls --
+ *
+ * Incia diálogo TLS con su interlocutor
+ */
+
+int
+cntr_inicia_diálogo_tls(t_capa_gnutls *capatls, int df_cliente);
+
+/* cntr_dialoga_envia_datos_capa_tls --
+ *
+ * Prinero inicia díalogo TLS y luego envía datos cifrados (Cliente)
+ */
+
+ssize_t
+cntr_dialoga_envia_datos_capa_tls(t_capa_gnutls *capatls, int df_cliente,
+                          const void *tope, size_t bulto);
 
 /* cntr_envia_datos_capa_tls --
  *
@@ -140,22 +180,39 @@ ssize_t
 cntr_envia_datos_capa_tls(t_capa_gnutls *capatls, int df_cliente,
                           const void *tope, size_t bulto);
 
+/* cntr_dialoga_recibe_datos_capa_tls --
+ *
+ * Prinero inicia díalogo TLS y luego recibe datos descifrados (Servidor)
+ */
+
+ssize_t
+cntr_dialoga_recibe_datos_capa_tls(t_capa_gnutls *capatls, int df_cliente,
+                                   void *tope, size_t bulto);
+
 /* cntr_recibe_datos_capa_tls --
  *
  * Recibe datos descifrados de la capa TLS
  */
 
 ssize_t
-cntr_recibe_datos_capa_tls(t_capa_gnutls *capatls, int df_cliente, void *tope,
-                           size_t bulto);
+cntr_recibe_datos_capa_tls(t_capa_gnutls *capatls, int df_cliente,
+                           void *tope, size_t bulto);
 
-/* cntr_cierra_toma_tls --
+/* cntr_cierra_toma_tls_cliente --
  *
- * Termina la conexión TLS del cliente o del servidor
+ * Termina la conexión TLS del cliente
  */
 
 int
-cntr_cierra_toma_tls(t_capa_gnutls *capatls, int cliente, int df_toma);
+cntr_cierra_toma_tls_cliente(t_capa_gnutls *capatls, int df_toma);
+
+/* cntr_cierra_toma_tls_servidor --
+ *
+ * Termina la conexión TLS del servidor
+ */
+
+int
+cntr_cierra_toma_tls_servidor(t_capa_gnutls *capatls, int df_toma);
 
 /* cntr_falso_cierre_toma_tls --
  *
@@ -163,7 +220,7 @@ cntr_cierra_toma_tls(t_capa_gnutls *capatls, int cliente, int df_toma);
  */
 
 int
-cntr_falso_cierre_toma_tls(t_capa_gnutls *capatls, int cliente, int df_toma);
+cntr_falso_cierre_toma_tls(t_capa_gnutls *capatls, int df_toma);
 
 /* cntr_par_clave_privada_y_certificado_tls --
  *
