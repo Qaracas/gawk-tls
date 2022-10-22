@@ -13,7 +13,7 @@ UNAME := $(shell uname -o)
 ifeq ($(UNAME), Cygwin)
 SUFLIB = .dll
 endif
-ifeq ($(UNAME), Linux)
+ifeq ($(UNAME), GNU/Linux)
 SUFLIB = .so
 endif
 

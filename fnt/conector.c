@@ -610,6 +610,21 @@ conector_recibe_datos(char **out, awk_input_buf_t *tpent, int *errcode,
 
     /* Relee variable global TPM cada vez */
     if((tpm = trae_tope_maximo()) != v_tpm) {
+        char *resto = rt->toma->pila->tope->datos
+            + rt->toma->pila->tope->ptrreg;
+        int bulto = strlen(resto);
+
+        /* Antes de borrar el tope devolvemos el flujo restante */
+        if (bulto > 0) {
+            /* Variable RT no tiene sentido leyendo flujos */
+            *rt_start = NULL;
+            *rt_len = 0;
+            *out =  resto;
+            rt->toma->pila->lgtreg = bulto;
+            rt->toma->pila->tope->ptrreg += bulto;
+            goto salir;
+        }
+
         v_tpm = tpm;
         cntr_borra_tope(rt->toma->pila->tope);
         cntr_nuevo_tope(&rt->toma->pila->tope, tpm);
@@ -627,7 +642,7 @@ conector_recibe_datos(char **out, awk_input_buf_t *tpent, int *errcode,
                                      cntr_error.descripción));
         return CNTR_ERROR;
     }
-
+salir:
     return rt->toma->pila->lgtreg;
 }
 
