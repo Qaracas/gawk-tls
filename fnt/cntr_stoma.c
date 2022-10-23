@@ -45,7 +45,7 @@
 #include "cntr_toma.h"
 #include "cntr_stoma.h"
 
-/* es_dirip --
+/* privada - es_dirip --
  *
  * Modifica criterios evitando a getaddrinfo() resolver nombre
  */
@@ -212,6 +212,8 @@ fin:
     freeifaddrs(stomas_locales);
     return CNTR_HECHO;
 }
+
+#define es_dirip call function
 
 /* cntr_borra_infred */
 

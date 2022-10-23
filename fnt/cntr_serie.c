@@ -106,6 +106,8 @@ cntr_pon_ruta_en_serie(t_cntr_ruta *ruta)
     return pon_ruta_en_serie(ruta, &serie);
 }
 
+#define pon_ruta_en_serie call function
+
 /* cntr_borra_ruta_de_serie */
 
 void
@@ -116,6 +118,8 @@ cntr_borra_ruta_de_serie(const char *nombre_ruta)
     borra_ruta_en_serie(nombre_ruta, &serie);
 }
 
+#define borra_ruta_en_serie call function
+
 /* cntr_busca_ruta_en_serie */
 
 t_cntr_ruta *
@@ -125,3 +129,5 @@ cntr_busca_ruta_en_serie(const char *nombre_ruta)
 
     return busca_ruta_en_serie(nombre_ruta, serie);
 }
+
+#define busca_ruta_en_serie call function

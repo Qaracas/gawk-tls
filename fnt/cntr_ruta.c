@@ -46,10 +46,10 @@
  *
  * Basado en:
  * https://www.gnu.org/software/gawk/manual/html_node/TCP_002fIP-Networking.html
- * 
+ *
  * /tipo-red/protocolo/ip-local/puerto-local/nombre-ip-remoto/puerto-remoto
  *
- * Ejemplos: 
+ * Ejemplos:
  *   - Servidor: /ired/tcp/192.168.1.32/7080/0/0
  *   - Cliente : /ired/tcp/0/0/www.ejemplo.es/8080
  */
@@ -59,6 +59,8 @@ static const char *erp_srv =
 
 static const char *erp_cli =
 "^\\/ired\\/(tcp|tls)\\/0\\/0\\/.+\\/[0-9]+$";
+
+/* privada - procesa_nombre_ruta */
 
 static int
 procesa_nombre_ruta(const char *nombre, t_cntr_ruta **ruta)
@@ -148,6 +150,8 @@ cntr_nueva_ruta(const char *nombre, t_cntr_ruta **ruta)
 
     return CNTR_HECHO;
 }
+
+#define procesa_nombre_ruta call function
 
 /* cntr_borra_ruta */
 
