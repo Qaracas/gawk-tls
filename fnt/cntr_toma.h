@@ -147,15 +147,6 @@ cntr_nueva_pila_toma(t_cntr_toma_es *toma, char *sr, size_t tpm);
 void
 cntr_borra_pila_toma(t_cntr_toma_es *toma);
 
-/* cntr_envia_datos --
- *
- * Recubrimiento para enviar datos por la toma
- */
-
-ssize_t
-cntr_envia_datos(t_capa_gnutls *capatls, int df_cliente,
-                 const void *tope, size_t bulto);
-
 /* cntr_envia_toma --
  *
  * Envía datos por la toma de conexión

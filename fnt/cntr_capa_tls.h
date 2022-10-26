@@ -35,7 +35,7 @@
 #ifndef CAPA_TLS_H
 #define CAPA_TLS_H
 
-#define VERIFICA_ERROR(valret, cmd, cmdtxt) \
+#define VERIFICA_ERROR_TLS(valret, cmd, cmdtxt) \
     if ((valret = cmd) < GNUTLS_E_SUCCESS) { \
         cntr_error(valret, \
                    cntr_msj_error("%s %s", \
@@ -44,7 +44,7 @@
         return CNTR_ERROR; \
     }
 
-#define BUCLE_VERIFICA(valret, cmd) \
+#define BUCLE_VERIFICA_TLS(valret, cmd) \
     do { \
         valret = cmd; \
     } while(valret == GNUTLS_E_AGAIN || valret == GNUTLS_E_INTERRUPTED)
@@ -153,14 +153,6 @@ cntr_falso_inicio_sesion_capa_tls(t_capa_gnutls *capatls, char *nodo);
 
 void
 cntr_finaliza_sesion_capa_tls(t_capa_gnutls *capatls);
-
-/* cntr_inicia_diálogo_tls --
- *
- * Incia diálogo TLS con su interlocutor
- */
-
-int
-cntr_inicia_diálogo_tls(t_capa_gnutls *capatls, int df_cliente);
 
 /* cntr_dialoga_envia_datos_capa_tls --
  *

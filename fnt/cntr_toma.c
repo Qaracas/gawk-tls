@@ -208,25 +208,6 @@ cntr_borra_pila_toma(t_cntr_toma_es *toma)
     free(toma->pila);
 }
 
-/* cntr_envia_datos */
-
-ssize_t
-cntr_envia_datos(t_capa_gnutls *capatls, int df_cliente,
-                 const void *tope, size_t bulto)
-{
-    (void) capatls;
-    extern int errno;
-    ssize_t resul;
-
-    cntr_limpia_error(errno);
-    if ((resul = send(df_cliente, tope, bulto, 0)) < 0)
-        cntr_error(errno, cntr_msj_error("%s %s",
-                             "cntr_envia_datos()",
-                             strerror(errno)));
-
-    return resul;
-}
-
 /* cntr_envia_a_toma */
 
 int
@@ -243,22 +224,15 @@ cntr_envia_toma(t_cntr_toma_es *toma, const void *datos, size_t bulto)
 char *
 cntr_recibe_linea_toma(t_cntr_toma_es *toma, char **sdrt, size_t *tsr)
 {
-    int recbt;
-    struct sockaddr cliente;
     extern int errno;
+    int recbt;
     t_cntr_tope *tope = toma->pila->tope;
 
     if (tope->ldatos == 0) {
-reintenta_recibir_linea:
         cntr_limpia_error(errno);
         recbt = cntr_rcbl_llena_tope(toma);
 
         switch (recbt) {
-            case CNTR_REINTENTAR:
-                if (   cntr_trae_primer_cliente_toma(toma, &cliente)
-                    == CNTR_ERROR)
-                    return NULL;
-                goto reintenta_recibir_linea;
             case CNTR_TOPE_RESTO:
             case CNTR_TOPE_VACIO:
                 /* Tamaño del registro */
@@ -311,23 +285,16 @@ reintenta_recibir_linea:
 char *
 cntr_recibe_flujo_toma(t_cntr_toma_es *toma, char **sdrt, size_t *tsr)
 {
-    int recbt;
-    struct sockaddr cliente;
     extern int errno;
+    int recbt;
+
     t_cntr_tope *tope = toma->pila->tope;
 
-reintenta_recibir_flujo:
     cntr_limpia_error(errno);
     recbt = cntr_rcbf_llena_tope(toma);
 
     switch (recbt) {
-        case CNTR_REINTENTAR:
-            if (   cntr_trae_primer_cliente_toma(toma, &cliente)
-                == CNTR_ERROR) {
-                return NULL;
-            }
-            goto reintenta_recibir_flujo;
-        //case CNTR_TOPE_VACIO:
+        case CNTR_TOPE_VACIO:
         case CNTR_ERROR:
             return NULL;
     }

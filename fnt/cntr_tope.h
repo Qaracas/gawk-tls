@@ -35,10 +35,15 @@
 #ifndef TOPE_H
 #define TOPE_H
 
-#define CNTR_TOPE_VACIO (-2)
-#define CNTR_TOPE_RESTO (-3)
+#define CNTR_TOPE_VACIO (-3)
+#define CNTR_TOPE_RESTO (-4)
 
 #define CNTR_TOPE_MAX_X_DEF 1024
+
+#define BUCLE_VERIFICA(valret, cmd) \
+    do { \
+        valret = cmd; \
+    } while(valret == EAGAIN)
 
 typedef struct cntr_tope {
     size_t  bulto; /* Volumen o capacidad del tope */
@@ -63,6 +68,15 @@ cntr_nuevo_tope(t_cntr_tope **tope, size_t bulto);
 
 void
 cntr_borra_tope(t_cntr_tope *tope);
+
+/* cntr_envia_datos --
+ *
+ * Recubrimiento para enviar datos por la toma
+ */
+
+ssize_t
+cntr_envia_datos(t_capa_gnutls *capatls, int df_cliente,
+                 const void *tope, size_t bulto);
 
 /* cntr_recibe_datos --
  *

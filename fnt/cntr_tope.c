@@ -90,27 +90,55 @@ cntr_borra_tope(t_cntr_tope *tope)
     tope = NULL;
 }
 
+/* cntr_envia_datos */
+
+ssize_t
+cntr_envia_datos(t_capa_gnutls *capatls, int df_cliente,
+                 const void *tope, size_t bulto)
+{
+    (void) capatls;
+    extern int errno;
+    ssize_t resul;
+
+    cntr_limpia_error(errno);
+    BUCLE_VERIFICA(resul, send(df_cliente, tope, bulto, 0));
+    if (resul < 0) {
+        cntr_error(errno, cntr_msj_error("%s %s",
+                             "cntr_envia_datos()",
+                             strerror(errno)));
+        return CNTR_ERROR;
+    }
+
+    return resul;
+}
+
 /* cntr_recibe_datos */
 
 ssize_t
 cntr_recibe_datos(t_capa_gnutls *capatls, int df_cliente, void *tope,
                   size_t bulto)
 {
-    extern int errno;
     (void) capatls;
+    extern int errno;
     ssize_t resul;
 
-    cntr_limpia_error(errno);
-    if (   (resul = recv(df_cliente, tope, bulto, 0)) < 0) {
-        if (errno != EAGAIN && errno!=  EWOULDBLOCK) {
+    for (;;) {
+        cntr_limpia_error(errno);
+        BUCLE_VERIFICA(resul, recv(df_cliente, tope, bulto, 0));
+        if (resul == 0) {
+            /* El interlocutor cierra la conexión (fin de flujo) */
+            break;
+        } else if (resul < 0 && errno !=  EWOULDBLOCK) {
             cntr_error(errno, cntr_msj_error("%s %s",
                                  "cntr_recibe_datos()",
                                  strerror(errno)));
             return CNTR_ERROR;
         } else {
-            return 0;
+            /* EWOULDBLOCK ó resul > 0 */
+            break;
         }
     }
+
     return resul;
 }
 
@@ -130,8 +158,6 @@ cntr_rcbl_llena_tope(t_cntr_toma_es *toma)
                                    tope->bulto - tope->ptrreg);
 
     switch (tope->ldatos) {
-        case CNTR_REINTENTAR:
-            return CNTR_REINTENTAR;
         case 0:
             if (tope->ptrreg > 0) {
                 bzero(tope->datos + tope->ptrreg,
@@ -171,8 +197,6 @@ cntr_rcbf_llena_tope(t_cntr_toma_es *toma)
                                    tope->bulto);
 
     switch (tope->ldatos) {
-        case CNTR_REINTENTAR:
-            return CNTR_REINTENTAR;
         case 0:
             return CNTR_TOPE_VACIO;
         case CNTR_ERROR:

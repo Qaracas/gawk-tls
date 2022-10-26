@@ -38,9 +38,8 @@
 #define DEFCOM_H
 
 #define CNTR_HECHO      (0)
-#define CNTR_ERROR      (-1)
+#define CNTR_ERROR      (-5)
 #define CNTR_DF_NULO    (-1)
-#define CNTR_REINTENTAR (-4)
 
 #define cntr_ltd(x) (sizeof(x) / sizeof((x)[0]))
 
