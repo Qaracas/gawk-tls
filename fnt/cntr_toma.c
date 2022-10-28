@@ -234,7 +234,6 @@ cntr_recibe_linea_toma(t_cntr_toma_es *toma, char **sdrt, size_t *tsr)
 
         switch (recbt) {
             case CNTR_TOPE_RESTO:
-            case CNTR_TOPE_VACIO:
                 /* Tamaño del registro */
                 toma->pila->lgtreg = tope->ldatos;
 
@@ -243,6 +242,9 @@ cntr_recibe_linea_toma(t_cntr_toma_es *toma, char **sdrt, size_t *tsr)
                 *tsr = 0;
 
                 return tope->datos;
+            case CNTR_TOPE_VACIO:
+                toma->pila->lgtreg = EOF;
+                return NULL;
             case CNTR_ERROR:
                 return NULL;
         }
@@ -295,6 +297,8 @@ cntr_recibe_flujo_toma(t_cntr_toma_es *toma, char **sdrt, size_t *tsr)
 
     switch (recbt) {
         case CNTR_TOPE_VACIO:
+           toma->pila->lgtreg = EOF;
+           return NULL;
         case CNTR_ERROR:
             return NULL;
     }

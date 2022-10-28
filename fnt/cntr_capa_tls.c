@@ -60,9 +60,9 @@ cntr_inicia_diálogo_tls(t_capa_gnutls *capatls, int df_cliente)
     if (resul < 0) {
         close(df_cliente);
         cntr_finaliza_sesion_capa_tls(capatls);
-        fprintf(stderr,
-                "Dialogo TLS fallido: %s\n",
-                gnutls_strerror(resul));
+        cntr_error(resul, cntr_msj_error("%s %s",
+                             "cntr_inicia_diálogo_tls()",
+                             gnutls_strerror(resul)));
     }
 
     return resul;
