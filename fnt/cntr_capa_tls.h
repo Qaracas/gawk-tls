@@ -35,29 +35,33 @@
 #ifndef CAPA_TLS_H
 #define CAPA_TLS_H
 
-#define VERIFICA_ERROR_TLS(valret, cmd, cmdtxt) \
-    if ((valret = cmd) < GNUTLS_E_SUCCESS) { \
-        cntr_error(valret, \
-                   cntr_msj_error("%s %s", \
-                                  cmdtxt, \
+#define VERIFICA_ERROR_TLS(valret, cmd, cmdtxt)              \
+    if ((valret = cmd) < GNUTLS_E_SUCCESS) {                 \
+        cntr_error(valret,                                   \
+                   cntr_msj_error("%s %s",                   \
+                                  cmdtxt,                    \
                                   gnutls_strerror(valret))); \
-        return CNTR_ERROR; \
+        return CNTR_ERROR;                                   \
     }
 
-#define BUCLE_VERIFICA_TLS(valret, cmd) \
-    do { \
-        valret = cmd; \
-    } while(valret == GNUTLS_E_AGAIN || valret == GNUTLS_E_INTERRUPTED)
-
-struct gnutls_session_int;
-typedef struct gnutls_session_int *gnutls_session_t;
+#define BUCLE_VERIFICA_TLS(valret, cmd)                      \
+    do {                                                     \
+        valret = cmd;                                        \
+    } while(   valret == GNUTLS_E_AGAIN                      \
+            || valret == GNUTLS_E_INTERRUPTED)
 
 struct gnutls_certificate_credentials_st;
-typedef struct gnutls_certificate_credentials_st 
+typedef struct gnutls_certificate_credentials_st
 *gnutls_certificate_credentials_t;
 
 struct gnutls_priority_st;
 typedef struct gnutls_priority_st *gnutls_priority_t;
+
+struct gnutls_session_int;
+typedef struct gnutls_session_int *gnutls_session_t;
+
+struct gnutls_datum_t;
+typedef struct gnutls_datum_t *gnutls_dds_t;
 
 #ifndef T_CTRN_VERDAD
 #define T_CTRN_VERDAD
@@ -67,12 +71,17 @@ typedef enum cntr_verdad {
 } t_ctrn_verdad;
 #endif
 
+typedef int (*func_diálogo_capa_tls)(void *capatls, int df_cliente);
+
 typedef struct capa_gnutls {
-    gnutls_certificate_credentials_t credx509;  /* Est. certificado X.509 */
-    gnutls_priority_t                prioridad; /* Para cifrado y claves  */
-    gnutls_session_t                 sesión;    /* Sesión TLS             */
+    gnutls_certificate_credentials_t credx509;      /* Certificado X.509    */
+    gnutls_priority_t                prioridad;     /* De cifrado y claves  */
+    gnutls_session_t                 sesión;        /* Sesión TLS           */
+    gnutls_dds_t                     dd_sesión;     /* Si reutiliza sesión  */
+    func_diálogo_capa_tls            dialoga_capa_tls;
     t_ctrn_verdad                    usándose : 1;
     t_ctrn_verdad                    sesión_iniciada : 1;
+    t_ctrn_verdad                    sesión_guardada : 1;
 } t_capa_gnutls;
 
 /* cntr_arranque_global_capa_tls_cliente --
