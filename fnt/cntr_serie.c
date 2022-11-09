@@ -43,10 +43,10 @@
 
 static t_cntr_pieza *serie;
 
-/* privada - pon_ruta_en_serie */
+/* privada - __pon_ruta_en_serie */
 
 static t_cntr_ruta *
-pon_ruta_en_serie(t_cntr_ruta *ruta, t_cntr_pieza **serie)
+__pon_ruta_en_serie(t_cntr_ruta *ruta, t_cntr_pieza **serie)
 {
     if (*serie == NULL) {
         cntr_asigmem(*serie, t_cntr_pieza *,
@@ -56,15 +56,15 @@ pon_ruta_en_serie(t_cntr_ruta *ruta, t_cntr_pieza **serie)
     } else if (strcmp(ruta->nombre, (*serie)->ruta->nombre) == 0) {
         return NULL;
     } else
-        return pon_ruta_en_serie(ruta, &(*serie)->siguiente);
+        return __pon_ruta_en_serie(ruta, &(*serie)->siguiente);
 
     return (*serie)->ruta;
 }
 
-/* privada - borra_ruta_en_serie */
+/* privada - __borra_ruta_en_serie */
 
 static void
-borra_ruta_en_serie(const char *nombre_ruta, t_cntr_pieza **serie)
+__borra_ruta_en_serie(const char *nombre_ruta, t_cntr_pieza **serie)
 {
     if (nombre_ruta != NULL && *serie != NULL) {
         if (strcmp(nombre_ruta,
@@ -77,22 +77,22 @@ borra_ruta_en_serie(const char *nombre_ruta, t_cntr_pieza **serie)
                 *serie = (*serie)->siguiente;
             }
         } else {
-            borra_ruta_en_serie(nombre_ruta, &(*serie)->siguiente);
+            __borra_ruta_en_serie(nombre_ruta, &(*serie)->siguiente);
         }
     }
 }
 
-/* privada - busca_ruta_en_serie */
+/* privada - __busca_ruta_en_serie */
 
 static t_cntr_ruta *
-busca_ruta_en_serie(const char *nombre_ruta, t_cntr_pieza *serie)
+__busca_ruta_en_serie(const char *nombre_ruta, t_cntr_pieza *serie)
 {
     if (nombre_ruta == NULL || serie == NULL)
         return NULL;
     else if (strcmp(nombre_ruta, serie->ruta->nombre) == 0)
         return serie->ruta;
     else
-        return busca_ruta_en_serie(nombre_ruta, serie->siguiente);
+        return __busca_ruta_en_serie(nombre_ruta, serie->siguiente);
     return NULL;
 }
 
@@ -103,10 +103,10 @@ cntr_pon_ruta_en_serie(t_cntr_ruta *ruta)
 {
     extern t_cntr_pieza *serie;
 
-    return pon_ruta_en_serie(ruta, &serie);
+    return __pon_ruta_en_serie(ruta, &serie);
 }
 
-#define pon_ruta_en_serie call function
+#define __pon_ruta_en_serie call function
 
 /* cntr_borra_ruta_de_serie */
 
@@ -115,10 +115,10 @@ cntr_borra_ruta_de_serie(const char *nombre_ruta)
 {
     extern t_cntr_pieza *serie;
 
-    borra_ruta_en_serie(nombre_ruta, &serie);
+    __borra_ruta_en_serie(nombre_ruta, &serie);
 }
 
-#define borra_ruta_en_serie call function
+#define __borra_ruta_en_serie call function
 
 /* cntr_busca_ruta_en_serie */
 
@@ -127,7 +127,7 @@ cntr_busca_ruta_en_serie(const char *nombre_ruta)
 {
     extern t_cntr_pieza *serie;
 
-    return busca_ruta_en_serie(nombre_ruta, serie);
+    return __busca_ruta_en_serie(nombre_ruta, serie);
 }
 
-#define busca_ruta_en_serie call function
+#define __busca_ruta_en_serie call function

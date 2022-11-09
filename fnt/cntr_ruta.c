@@ -60,10 +60,10 @@ static const char *erp_srv =
 static const char *erp_cli =
 "^\\/ired\\/(tcp|tls)\\/0\\/0\\/.+\\/[0-9]+$";
 
-/* privada - procesa_nombre_ruta */
+/* privada - __procesa_nombre_ruta */
 
 static int
-procesa_nombre_ruta(const char *nombre, t_cntr_ruta **ruta)
+__procesa_nombre_ruta(const char *nombre, t_cntr_ruta **ruta)
 {
     regex_t expreg_srv, expreg_cli;
 
@@ -140,7 +140,7 @@ cntr_nueva_ruta(const char *nombre, t_cntr_ruta **ruta)
     (*ruta)->segura = cntr_falso;
     (*ruta)->cliente = cntr_falso;
 
-    if (procesa_nombre_ruta(nombre, ruta) == CNTR_ERROR)
+    if (__procesa_nombre_ruta(nombre, ruta) == CNTR_ERROR)
         return CNTR_ERROR;
 
     cntr_asigmem((*ruta)->nombre, char *,
@@ -151,7 +151,7 @@ cntr_nueva_ruta(const char *nombre, t_cntr_ruta **ruta)
     return CNTR_HECHO;
 }
 
-#define procesa_nombre_ruta call function
+#define __procesa_nombre_ruta call function
 
 /* cntr_borra_ruta */
 

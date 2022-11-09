@@ -56,14 +56,14 @@
 #include <sys/select.h>
 #endif
 
-/* privada - cambia_no_bloqueante --
+/* privada - __cambia_no_bloqueante --
  *
  * Poner toma en estado no bloqueante. Véase:
  * http://dwise1.net/pgm/sockets/blocking.html
  */
 
 static
-int cambia_no_bloqueante(int df)
+int __cambia_no_bloqueante(int df)
 {
     int indicadores;
     /* Si existe O_NONBLOCK se hace a la manera Posix */
@@ -80,10 +80,10 @@ int cambia_no_bloqueante(int df)
 #endif
 }
 
-/* privada - ini_cliente_tls*/
+/* privada - __ini_cliente_tls*/
 
 static
-void ini_cliente_tls(t_cntr_toma_es *toma) {
+void __ini_cliente_tls(t_cntr_toma_es *toma) {
     toma->inicia_tls = &cntr_arranque_global_capa_tls_cliente;
     toma->ini_sesión_tls = &cntr_inicia_sesion_capa_tls_cliente;
     toma->envia = &cntr_dialoga_envia_datos_capa_tls;
@@ -93,10 +93,10 @@ void ini_cliente_tls(t_cntr_toma_es *toma) {
     toma->cierra_tm_srv_tls = &cntr_cierra_toma_tls_servidor;
 }
 
-/* privada - ini_servidor_tls */
+/* privada - __ini_servidor_tls */
 
 static
-void ini_servidor_tls(t_cntr_toma_es *toma) {
+void __ini_servidor_tls(t_cntr_toma_es *toma) {
     toma->inicia_tls = &cntr_arranque_global_capa_tls_servidor;
     toma->ini_sesión_tls = &cntr_inicia_sesion_capa_tls_servidor;
     toma->envia = &cntr_envia_datos_capa_tls;
@@ -106,10 +106,10 @@ void ini_servidor_tls(t_cntr_toma_es *toma) {
     toma->cierra_tm_srv_tls = &cntr_cierra_toma_tls_servidor;
 }
 
-/* privada - ini_cliente_servidor_no_cifrado */
+/* privada - __ini_cliente_servidor_no_cifrado */
 
 static
-void ini_cliente_servidor_no_cifrado(t_cntr_toma_es *toma){
+void __ini_cliente_servidor_no_cifrado(t_cntr_toma_es *toma){
     toma->gtls = NULL;
     toma->inicia_tls = &cntr_falso_arranque_global_capa_tls;
     toma->ini_sesión_tls = &cntr_falso_inicio_sesion_capa_tls;
@@ -147,20 +147,20 @@ cntr_nueva_toma(t_cntr_ruta *ruta)
         cntr_asigmem(ruta->toma->gtls, t_capa_gnutls *,
                      sizeof(t_capa_gnutls), "cntr_nueva_toma");
         if (ruta->cliente) {
-            ini_cliente_tls(ruta->toma);
+            __ini_cliente_tls(ruta->toma);
         } else {
-            ini_servidor_tls(ruta->toma);
+            __ini_servidor_tls(ruta->toma);
         }
     } else {
-        ini_cliente_servidor_no_cifrado(ruta->toma);
+        __ini_cliente_servidor_no_cifrado(ruta->toma);
     }
 
     return ruta->toma;
 }
 
-#define ini_cliente_tls call function
-#define ini_servidor_tls call function
-#define ini_cliente_servidor_no_cifrado call function
+#define __ini_cliente_tls call function
+#define __ini_servidor_tls call function
+#define __ini_cliente_servidor_no_cifrado call function
 
 /* cntr_borra_toma */
 
@@ -498,7 +498,7 @@ atiende_resto_eventos:
     }
 sal_y_usa_el_df:
     /* Pon la toma en estado no bloqueante */
-    cambia_no_bloqueante(toma->cliente);
+    __cambia_no_bloqueante(toma->cliente);
     return CNTR_HECHO;
 }
 #else
@@ -566,12 +566,12 @@ sondea_salida:
         }
     }
     /* Pon la toma en estado no bloqueante */
-    cambia_no_bloqueante(toma->cliente);
+    __cambia_no_bloqueante(toma->cliente);
     return CNTR_HECHO;
 }
 #endif
 
-#define cambia_no_bloqueante call function
+#define __cambia_no_bloqueante call function
 
 /* cntr_cierra_toma_cliente */
 

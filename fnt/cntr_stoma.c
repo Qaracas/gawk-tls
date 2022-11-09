@@ -45,13 +45,13 @@
 #include "cntr_toma.h"
 #include "cntr_stoma.h"
 
-/* privada - es_dirip --
+/* privada - __es_dirip --
  *
  * Modifica criterios evitando a getaddrinfo() resolver nombre
  */
 
 static void
-es_dirip(char *ip, struct addrinfo *criterios)
+__es_dirip(char *ip, struct addrinfo *criterios)
 {
     struct sockaddr_in t4;
     struct in6_addr    t6;
@@ -94,7 +94,7 @@ cntr_nueva_infred_cliente(char *nodo, char *puerto, t_cntr_toma_es *toma)
     criterios.ai_socktype = SOCK_STREAM; /* Toma de datos sobre TCP */
 
      /* Evitar a 'getaddrinfo' resolver nombre */
-    es_dirip(nodo, &criterios);
+    __es_dirip(nodo, &criterios);
     if ((r = getaddrinfo(nodo, puerto, &criterios, &toma->infred)) != 0) {
         cntr_error(CNTR_ERROR, cntr_msj_error("%s %s",
                              "cntr_nueva_infred_servidor()",
@@ -143,7 +143,7 @@ cntr_nueva_infred_servidor(char *nodo, char *puerto, t_cntr_toma_es *toma)
     }
 
      /* Evitar a 'getaddrinfo' resolver nombre */
-    es_dirip(nodo, &criterios);
+    __es_dirip(nodo, &criterios);
     if ((r = getaddrinfo(nodo, puerto, &criterios, &toma->infred)) != 0) {
         cntr_error(CNTR_ERROR, cntr_msj_error("%s %s",
                              "cntr_nueva_infred_servidor()",
@@ -213,7 +213,7 @@ fin:
     return CNTR_HECHO;
 }
 
-#define es_dirip call function
+#define __es_dirip call function
 
 /* cntr_borra_infred */
 
