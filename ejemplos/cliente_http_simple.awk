@@ -50,6 +50,9 @@ BEGIN {
 
     creatoma(ServicioHttp);
 
+    #lisautor(ServicioHttp, "certificados/cacert.pem");
+
+    # Cabecera de la petición HTTP
     print "GET /wiki/Software_libre HTTP/1.1"  |& ServicioHttp;
     print "Host: " ServidorHttp                |& ServicioHttp;
     print                                      |& ServicioHttp;
@@ -68,11 +71,13 @@ BEGIN {
     }
 
     # Cuerpo de la respuesta HTTP
-    TPM = 1024;
+    TPM = 2048;
     ORS = "";
+    cont = 0;
     while (resul = (ServicioHttp |& getline)) {
         print $0;
-        if ($0 ~ /<\/html>$/)
+        cont = cont + length();
+        if (cont >= lgtd)
             break;
         if (resul < 0) {
             print ERRNO;
