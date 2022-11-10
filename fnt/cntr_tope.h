@@ -38,7 +38,7 @@
 #define CNTR_TOPE_VACIO (-3)
 #define CNTR_TOPE_RESTO (-4)
 
-#define CNTR_TOPE_MAX_X_DEF 1024
+#define CNTR_TOPE_MAX_X_DEF 8192
 
 #define BUCLE_VERIFICA(valret, cmd) \
     do { \
