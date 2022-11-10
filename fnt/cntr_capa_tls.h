@@ -71,14 +71,11 @@ typedef enum cntr_verdad {
 } t_ctrn_verdad;
 #endif
 
-typedef int (*func_diálogo_capa_tls)(void *capatls, int df_cliente);
-
 typedef struct capa_gnutls {
     gnutls_certificate_credentials_t credx509;      /* Certificado X.509    */
     gnutls_priority_t                prioridad;     /* De cifrado y claves  */
     gnutls_session_t                 sesión;        /* Sesión TLS           */
     gnutls_dds_t                     dd_sesión;     /* Si reutiliza sesión  */
-    func_diálogo_capa_tls            dialoga_capa_tls;
     t_ctrn_verdad                    usándose : 1;
     t_ctrn_verdad                    sesión_iniciada : 1;
     t_ctrn_verdad                    sesión_guardada : 1;
@@ -163,14 +160,29 @@ cntr_falso_inicio_sesion_capa_tls(t_capa_gnutls *capatls, char *nodo);
 void
 cntr_finaliza_sesion_capa_tls(t_capa_gnutls *capatls);
 
-/* cntr_dialoga_envia_datos_capa_tls --
+/* cntr_inicia_diálogo_tls_cliente --
  *
- * Prinero inicia díalogo TLS y luego envía datos cifrados (Cliente)
+ * Inicia el díalog de la capa TLS
  */
 
-ssize_t
-cntr_dialoga_envia_datos_capa_tls(t_capa_gnutls *capatls, int df_cliente,
-                          const void *tope, size_t bulto);
+int
+cntr_inicia_diálogo_tls_cliente(t_capa_gnutls *capatls, int df_cliente);
+
+/* cntr_inicia_diálogo_tls_servidor --
+ *
+ * Inicia el díalog de la capa TLS
+ */
+
+int
+cntr_inicia_diálogo_tls_servidor(t_capa_gnutls *capatls, int df_cliente);
+
+/* cntr_falso_inicio_diálogo_tls
+ *
+ * Falsa función
+ */
+
+int
+cntr_falso_inicio_diálogo_tls(t_capa_gnutls *capatls, int df_cliente);
 
 /* cntr_envia_datos_capa_tls --
  *
@@ -180,15 +192,6 @@ cntr_dialoga_envia_datos_capa_tls(t_capa_gnutls *capatls, int df_cliente,
 ssize_t
 cntr_envia_datos_capa_tls(t_capa_gnutls *capatls, int df_cliente,
                           const void *tope, size_t bulto);
-
-/* cntr_dialoga_recibe_datos_capa_tls --
- *
- * Prinero inicia díalogo TLS y luego recibe datos descifrados (Servidor)
- */
-
-ssize_t
-cntr_dialoga_recibe_datos_capa_tls(t_capa_gnutls *capatls, int df_cliente,
-                                   void *tope, size_t bulto);
 
 /* cntr_recibe_datos_capa_tls --
  *

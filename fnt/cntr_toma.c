@@ -86,7 +86,8 @@ static
 void __ini_cliente_tls(t_cntr_toma_es *toma) {
     toma->inicia_tls = &cntr_arranque_global_capa_tls_cliente;
     toma->ini_sesión_tls = &cntr_inicia_sesion_capa_tls_cliente;
-    toma->envia = &cntr_dialoga_envia_datos_capa_tls;
+    toma->ini_diálogo_tls = &cntr_inicia_diálogo_tls_cliente;
+    toma->envia = &cntr_envia_datos_capa_tls;
     toma->recibe = &cntr_recibe_datos_capa_tls;
     toma->para_tls = &cntr_parada_global_capa_tls_noprds;
     toma->cierra_tm_cli_tls = &cntr_cierra_toma_tls_cliente;
@@ -99,8 +100,9 @@ static
 void __ini_servidor_tls(t_cntr_toma_es *toma) {
     toma->inicia_tls = &cntr_arranque_global_capa_tls_servidor;
     toma->ini_sesión_tls = &cntr_inicia_sesion_capa_tls_servidor;
+    toma->ini_diálogo_tls = &cntr_inicia_diálogo_tls_servidor;
     toma->envia = &cntr_envia_datos_capa_tls;
-    toma->recibe = &cntr_dialoga_recibe_datos_capa_tls;
+    toma->recibe = &cntr_recibe_datos_capa_tls;
     toma->para_tls = &cntr_parada_global_capa_tls;
     toma->cierra_tm_cli_tls = &cntr_cierra_toma_tls_cliente;
     toma->cierra_tm_srv_tls = &cntr_cierra_toma_tls_servidor;
@@ -113,6 +115,7 @@ void __ini_cliente_servidor_no_cifrado(t_cntr_toma_es *toma){
     toma->gtls = NULL;
     toma->inicia_tls = &cntr_falso_arranque_global_capa_tls;
     toma->ini_sesión_tls = &cntr_falso_inicio_sesion_capa_tls;
+    toma->ini_diálogo_tls = &cntr_falso_inicio_diálogo_tls;
     toma->envia = &cntr_envia_datos;
     toma->recibe = &cntr_recibe_datos;
     toma->para_tls = &cntr_falsa_parada_global_capa_tls;
@@ -354,6 +357,9 @@ cntr_conecta_toma(t_cntr_toma_es *toma, char *nodo)
         return CNTR_ERROR;
     }
 
+    /* Inicia diálogo TLS si procede */
+    (*toma->ini_diálogo_tls)(toma->gtls, toma->cliente);
+
     return CNTR_HECHO;
 }
 
@@ -497,8 +503,13 @@ atiende_resto_eventos:
         }
     }
 sal_y_usa_el_df:
+
     /* Pon la toma en estado no bloqueante */
     __cambia_no_bloqueante(toma->cliente);
+
+    /* Inicia diálogo TLS si procede */
+    (*toma->ini_diálogo_tls)(toma->gtls, toma->cliente);
+
     return CNTR_HECHO;
 }
 #else
@@ -565,8 +576,13 @@ sondea_salida:
                 goto sondea_salida;
         }
     }
+
     /* Pon la toma en estado no bloqueante */
     __cambia_no_bloqueante(toma->cliente);
+
+    /* Inicia diálogo TLS si procede */
+    (*toma->ini_diálogo_tls)(toma->gtls, toma->cliente);
+
     return CNTR_HECHO;
 }
 #endif

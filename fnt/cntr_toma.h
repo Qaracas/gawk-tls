@@ -86,6 +86,8 @@ typedef int (*func_sesión)(t_capa_gnutls *capatls, char *nodo);
 
 typedef int (*func_cierra)(t_capa_gnutls *capatls, int df_toma);
 
+typedef int (*func_diálogo)(t_capa_gnutls *capatls, int df_cliente);
+
 /* Para cargar los datos que se envían o reciben de la toma */
 
 typedef struct datos_toma {
@@ -106,13 +108,14 @@ typedef struct cntr_toma_es {
     t_cntr_dts_toma *pila;    /* Pila de datos entre el programa y la toma */
     struct addrinfo *infred;  /* Información de red TCP/IP (API Linux)     */
     t_ctrn_verdad   local;    /* ¿Toma local?                              */
-    func_envía      envia;             /* Envío de datos                   */
-    func_recibe     recibe;            /* Recepción de datos               */
-    func_inicia     inicia_tls;        /* Inicio global TLS                */
-    func_para       para_tls;          /* Parada global TLS                */
-    func_sesión     ini_sesión_tls;    /* Inició sesión TLS                */
-    func_cierra     cierra_tm_cli_tls; /* Cierre toma TLS cliente          */
-    func_cierra     cierra_tm_srv_tls; /* Cierre toma TLS servidor         */
+    func_inicia     inicia_tls;        /* Iniciar globalmente TLS          */
+    func_sesión     ini_sesión_tls;    /* Iniciar sesión TLS               */
+    func_diálogo    ini_diálogo_tls;   /* Iniciar diálogo TLS              */
+    func_envía      envia;             /* Enviar datos                     */
+    func_recibe     recibe;            /* Recibir datos                    */
+    func_para       para_tls;          /* Parar globlemente TLS            */
+    func_cierra     cierra_tm_cli_tls; /* Cerrar toma TLS cliente          */
+    func_cierra     cierra_tm_srv_tls; /* Cerrar toma TLS servidor         */
 } t_cntr_toma_es;
 
 /* cntr_nueva_toma --

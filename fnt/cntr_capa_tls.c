@@ -116,68 +116,6 @@ __inicia_diálogo_tls(t_capa_gnutls *capatls, int df_cliente)
     return resul;
 }
 
-/* privada - __diálogo_no_renaudable_capa_tls */
-
-static int
-__diálogo_no_renaudable_capa_tls(void *capatls, int df_cliente)
-{
-    if (__inicia_diálogo_tls((t_capa_gnutls *)capatls, df_cliente) < 0)
-        return CNTR_ERROR;
-    return CNTR_HECHO;
-}
-
-/* privada - __diálogo_renaudable_capa_tls */
-
-static int
-__diálogo_renaudable_capa_tls(void *capatls, int df_cliente)
-{
-    int resul;
-    cntr_limpia_error(resul);
-
-    t_capa_gnutls *_capatls = (t_capa_gnutls *)capatls;
-
-    /* Segundo diálogo o posteriores */
-    if (_capatls->sesión_guardada) {
-        /* Reanuda sesión guardada por gnutls_session_get_data2() */
-        VERIFICA_ERROR_TLS(resul,
-            gnutls_session_set_data(_capatls->sesión,
-                (unsigned char *)((gnutls_datum_t*)_capatls->dd_sesión)->data,
-                (unsigned int)((gnutls_datum_t*)_capatls->dd_sesión)->size),
-            "cntr_dialoga_envia_datos_capa_tls()");
-        /* Si la sesión no se reanuda desistimos */
-        if (gnutls_session_is_resumed(_capatls->sesión) == 0) {
-            _capatls->dialoga_capa_tls = &__diálogo_no_renaudable_capa_tls;
-        }
-    }
-
-    if (__inicia_diálogo_tls(_capatls, df_cliente) < 0)
-        return CNTR_ERROR;
-
-    /* Primer diálogo: guarda los datos de sesión */
-    if (!_capatls->sesión_guardada) {
-        cntr_asigmem(_capatls->dd_sesión, gnutls_dds_t,
-                     sizeof(gnutls_dds_t),
-                     "cntr_arranque_global_capa_tls_cliente");
-        for (;;) {
-            VERIFICA_ERROR_TLS(resul,
-                gnutls_session_get_data2(_capatls->sesión,
-                                         (gnutls_datum_t*)_capatls->dd_sesión),
-                "cntr_dialoga_envia_datos_capa_tls()");
-            /* En TLS1.3 sólo es posible reanudar sesión al recibir tique */
-            if (   (   gnutls_protocol_get_version(_capatls->sesión)
-                    != GNUTLS_TLS1_3)
-                || ((  gnutls_session_get_flags(_capatls->sesión) 
-                     & GNUTLS_SFLAGS_SESSION_TICKET))) {
-                break;
-            }
-        }
-        _capatls->sesión_guardada = cntr_cierto;
-    }
-    return CNTR_HECHO;
-}
-
-#define __diálogo_no_renaudable_capa_tls call function
-
 /* privada - __arranque_global_capa_tls */
 
 static int
@@ -252,7 +190,6 @@ cntr_arranque_global_capa_tls_cliente(t_capa_gnutls *capatls)
     /* Ver función cntr_dialoga_envia_datos_capa_tls() */
     capatls->sesión_guardada = cntr_falso;
     capatls->sesión_iniciada = cntr_falso;
-    capatls->dialoga_capa_tls = &__diálogo_renaudable_capa_tls;
 
     return CNTR_HECHO;
 }
@@ -290,7 +227,6 @@ cntr_arranque_global_capa_tls_servidor(t_capa_gnutls *capatls)
      * Aquí no sirve: el servidor no reanuda sesiones */
     capatls->sesión_guardada = cntr_falso;
     capatls->sesión_iniciada = cntr_falso;
-    capatls->dialoga_capa_tls = &__diálogo_renaudable_capa_tls;
 
     return CNTR_HECHO;
 }
@@ -413,14 +349,36 @@ cntr_finaliza_sesion_capa_tls(t_capa_gnutls *capatls)
     }
 }
 
-/* cntr_dialoga_envia_datos_capa_tls */
+/* cntr_inicia_diálogo_tls_cliente */
 
-ssize_t
-cntr_dialoga_envia_datos_capa_tls(t_capa_gnutls *capatls, int df_cliente,
-                          const void *tope, size_t bulto)
+int
+cntr_inicia_diálogo_tls_cliente(t_capa_gnutls *capatls, int df_cliente)
 {
-    (*capatls->dialoga_capa_tls)(capatls, df_cliente);
-    return cntr_envia_datos_capa_tls(capatls, 0, tope, bulto);
+    if (__inicia_diálogo_tls(capatls, df_cliente) < 0)
+        return CNTR_ERROR;
+    return CNTR_HECHO;
+}
+
+/* cntr_inicia_diálogo_tls_servidor */
+
+int
+cntr_inicia_diálogo_tls_servidor(t_capa_gnutls *capatls, int df_cliente)
+{
+    if (__inicia_diálogo_tls(capatls, df_cliente) < 0)
+        return CNTR_ERROR;
+    return CNTR_HECHO;
+}
+
+#define __inicia_diálogo_tls call function
+
+/* cntr_falso_inicio_diálogo_tls */
+
+int
+cntr_falso_inicio_diálogo_tls(t_capa_gnutls *capatls, int df_cliente)
+{
+    (void) capatls;
+    (void) df_cliente;
+    return CNTR_HECHO;
 }
 
 /* cntr_envia_datos_capa_tls */
@@ -450,19 +408,6 @@ cntr_envia_datos_capa_tls(t_capa_gnutls *capatls, int df_cliente,
 
     return resul;
 }
-
-/* cntr_dialoga_recibe_datos_capa_tls */
-
-ssize_t
-cntr_dialoga_recibe_datos_capa_tls(t_capa_gnutls *capatls, int df_cliente,
-                                   void *tope, size_t bulto)
-{
-    if (__inicia_diálogo_tls(capatls, df_cliente) < 0)
-        return CNTR_ERROR;
-    return cntr_recibe_datos_capa_tls(capatls, 0, tope, bulto);
-}
-
-#define __inicia_diálogo_tls call function
 
 /* cntr_recibe_datos_capa_tls */
 
