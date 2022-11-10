@@ -50,7 +50,8 @@ BEGIN {
 
     creatoma(ServicioHttp);
 
-    #lisautor(ServicioHttp, "certificados/cacert.pem");
+    # Añade certificados de AC (opcional)
+    lisautor(ServicioHttp, "certificados/cacert.pem");
 
     # Cabecera de la petición HTTP
     print "GET /wiki/Software_libre HTTP/1.1"  |& ServicioHttp;
@@ -58,6 +59,7 @@ BEGIN {
     print                                      |& ServicioHttp;
 
     # Cabecera de la respuesta HTTP
+    lgtd = 0;
     while (resul = (ServicioHttp |& getline)) {
         print $0;
         if (tolower($1) == "content-length:")
@@ -69,6 +71,8 @@ BEGIN {
             break;
         }
     }
+
+    if (lgtd == 0)  exit 0;
 
     # Cuerpo de la respuesta HTTP
     TPM = 2048;
@@ -87,4 +91,6 @@ BEGIN {
 
     acabacli(ServicioHttp);
     dtrytoma(ServicioHttp);
+
+    exit 0;
 }
