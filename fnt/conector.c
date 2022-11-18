@@ -173,6 +173,35 @@ trae_separador_de_registro()
     return (char *)valor_rs.str_value.str;
 }
 
+/* crea_actualiza_var_global_num --
+ *
+ * Exporta variable numérica a la tabla de símbolos
+ */
+
+static awk_bool_t
+crea_actualiza_var_global_num(double num, char *var)
+{
+    awk_value_t valor;
+
+    if (!sym_lookup(var, AWK_NUMBER, &valor)) {
+        if (valor.val_type == AWK_STRING)
+            gawk_free(valor.str_value.str);
+        if (valor.val_type == AWK_REGEX)
+            gawk_free(valor.regex_value.str);
+        if (valor.val_type == AWK_ARRAY)
+            clear_array(valor.array_cookie);
+        make_number(num, &valor);
+    } else
+        valor.num_value = num;
+
+    if (!sym_update(var, &valor)) {
+        warning(ext_id, "error creando símbolo %s", var);
+        return awk_false;
+    }
+
+    return awk_true;
+}
+
 /**
  * Funciones que proporciona 'conector.c' a GAWK
  */
@@ -646,6 +675,8 @@ conector_recibe_datos(char **out, awk_input_buf_t *tpent, int *errcode,
         return EOF;
     }
 salir:
+    /* Número de octetos leídos */
+    crea_actualiza_var_global_num((double)rt->toma->pila->lgtreg, "LTD");
     return rt->toma->pila->lgtreg;
 }
 
