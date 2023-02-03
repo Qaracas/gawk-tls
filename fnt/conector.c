@@ -70,6 +70,23 @@ static t_cntr_ruta *rt;    /* Ruta de conexión en uso                       */
 static recibe_toma recibe; /* Puntero a función que recibe datos de la toma */
 static size_t      v_tpm;  /* Toma el valor de la variable global TPM       */
 
+static t_cntr_tope *v_tope; /* Para devolver datos sobrantes */
+
+/*
+ * finaliza_conector --
+ *
+ */
+
+static void
+finaliza_conector(void *data, int exit_status)
+{
+    (void) data;
+    (void) exit_status;
+
+    cntr_borra_tope(v_tope);
+    cntr_borra_ruta(rt);
+}
+
 /* pon_num_en_coleccion --
  *
  * Añadir elemento numérico a la colección
@@ -138,7 +155,6 @@ trae_tope_maximo()
 {
     awk_value_t valor_tpm;
     size_t tpm;
-    extern recibe_toma recibe;
 
     if (!(sym_lookup("TPM", AWK_NUMBER, &valor_tpm)))
         fatal(ext_id, "creatoma: error leyendo variable TPM");
@@ -147,12 +163,6 @@ trae_tope_maximo()
         fatal(ext_id, "creatoma: valor de TPM incorrecto");
 
     tpm = (size_t) valor_tpm.num_value;
-
-    /* Si TMP = 0 leemos datos hasta CNTR_TOPE_MAX_X_DEF */
-    if (tpm == 0)
-        recibe = &cntr_recibe_linea_toma;
-    else
-        recibe = &cntr_recibe_flujo_toma;
 
     return tpm;
 }
@@ -173,6 +183,35 @@ trae_separador_de_registro()
     return (char *)valor_rs.str_value.str;
 }
 
+/* crea_actualiza_var_global_num --
+ *
+ * Exporta variable numérica a la tabla de símbolos
+ */
+
+static awk_bool_t
+crea_actualiza_var_global_num(double num, char *var)
+{
+    awk_value_t valor;
+
+    if (!sym_lookup(var, AWK_NUMBER, &valor)) {
+        if (valor.val_type == AWK_STRING)
+            gawk_free(valor.str_value.str);
+        if (valor.val_type == AWK_REGEX)
+            gawk_free(valor.regex_value.str);
+        if (valor.val_type == AWK_ARRAY)
+            clear_array(valor.array_cookie);
+        make_number(num, &valor);
+    } else
+        valor.num_value = num;
+
+    if (!sym_update(var, &valor)) {
+        warning(ext_id, "error creando símbolo %s", var);
+        return awk_false;
+    }
+
+    return awk_true;
+}
+
 /**
  * Funciones que proporciona 'conector.c' a GAWK
  */
@@ -189,6 +228,7 @@ haz_crea_toma(int nargs, awk_value_t *resultado,
     (void) desusado;
     awk_value_t nombre;
     extern size_t v_tpm;
+    extern recibe_toma recibe;
     extern t_cntr_ruta *rt;
     extern t_cntr_error cntr_error;
 
@@ -219,8 +259,15 @@ haz_crea_toma(int nargs, awk_value_t *resultado,
                                      cntr_error.descripción));
 
     v_tpm = trae_tope_maximo();
-    cntr_nueva_pila_toma(rt->toma, trae_separador_de_registro(),
-                         v_tpm);
+
+    /* Si TMP = 0 leemos datos hasta CNTR_TOPE_MAX_X_DEF */
+    if (v_tpm == 0)
+        recibe = &cntr_recibe_linea_toma;
+    else
+        recibe = &cntr_recibe_flujo_toma;
+
+    cntr_nueva_pila_toma(rt->toma, trae_separador_de_registro(), v_tpm);
+
     if (cntr_error.número < 0)
         fatal(ext_id, cntr_msj_error("%s %s",
                                      "creatoma:",
@@ -610,24 +657,41 @@ conector_recibe_datos(char **out, awk_input_buf_t *tpent, int *errcode,
 
     /* Relee variable global TPM cada vez */
     if((tpm = trae_tope_maximo()) != v_tpm) {
-        char *resto = rt->toma->pila->tope->datos
-            + rt->toma->pila->tope->ptrreg;
-        int bulto = strlen(resto);
+
+        /* Si TMP = 0 leemos datos hasta CNTR_TOPE_MAX_X_DEF */
+        if (tpm == 0)
+            recibe = &cntr_recibe_linea_toma;
+        else
+            recibe = &cntr_recibe_flujo_toma;
 
         /* Antes de borrar el tope devolvemos el flujo restante */
-        if (bulto > 0) {
-            /* Variable RT no tiene sentido leyendo flujos */
-            *rt_start = NULL;
-            *rt_len = 0;
-            *out =  resto;
-            rt->toma->pila->lgtreg = bulto;
-            rt->toma->pila->tope->ptrreg += bulto;
-            goto salir;
+        if (v_tpm == 0) {
+            extern t_cntr_tope *v_tope;
+
+            /* Copiamos tope */
+            cntr_borra_tope(v_tope);
+            cntr_nuevo_tope(&v_tope, v_tpm);
+            memcpy(v_tope, rt->toma->pila->tope, sizeof(t_cntr_tope));
+            v_tope->datos = strdup(rt->toma->pila->tope->datos);
+
+            v_tope->ptrreg += rt->toma->pila->lgtreg + rt->toma->pila->tsr;
+
+            *out = v_tope->datos + v_tope->ptrreg;
+            int bulto = strlen(*out);
+
+            if (bulto > 0) {
+                /* Variable RT no tiene sentido leyendo flujos */
+                *rt_start = NULL;
+                *rt_len = 0;
+                rt->toma->pila->lgtreg = bulto;
+            }
         }
 
-        v_tpm = tpm;
         cntr_borra_tope(rt->toma->pila->tope);
         cntr_nuevo_tope(&rt->toma->pila->tope, tpm);
+
+        if (v_tpm == 0)
+            goto salir;
     }
 
     cntr_error.número = 0;
@@ -645,7 +709,14 @@ conector_recibe_datos(char **out, awk_input_buf_t *tpent, int *errcode,
                                         cntr_error.descripción));
         return EOF;
     }
+
 salir:
+    v_tpm = tpm;
+
+    /* Número de octetos leídos */
+    if (v_tpm > 0)
+        crea_actualiza_var_global_num((double)rt->toma->pila->lgtreg, "LTD");
+
     return rt->toma->pila->lgtreg;
 }
 
@@ -742,6 +813,11 @@ inicia_conector()
 {
     register_ext_version(ext_version);
     register_two_way_processor(&conector_es);
+
+    awk_atexit(&finaliza_conector, NULL);
+
+    cntr_nuevo_tope(&v_tope, 1);
+
     return awk_true;
 }
 
