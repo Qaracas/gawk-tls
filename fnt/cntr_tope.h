@@ -103,4 +103,12 @@ cntr_rcbl_llena_tope(t_cntr_toma_es *toma);
 int
 cntr_rcbf_llena_tope(t_cntr_toma_es *toma);
 
+/* cntr_vacía_tope --
+ *
+ * Vacía tope a cantidades de tamaño TPM (si es menor se vacía completamente)
+ */
+
+int
+cntr_vacía_tope(t_cntr_toma_es *toma, size_t tpm);
+
 #endif /* TOPE_H */
