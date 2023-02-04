@@ -158,16 +158,16 @@ cntr_rcbl_llena_tope(t_cntr_toma_es *toma)
                                    tope->bulto - tope->ptrreg);
 
     switch (tope->ldatos) {
-        case 0:
-            if (tope->ptrreg > 0) {
-                bzero(tope->datos + tope->ptrreg,
-                      tope->bulto - tope->ptrreg);
-                /* No hay datos en la toma, y se envía el remanente */
-                return CNTR_TOPE_RESTO;
-            } else
-                return CNTR_TOPE_VACIO;
-        case CNTR_ERROR:
-            return CNTR_ERROR;
+    case 0:
+        if (tope->ptrreg > 0) {
+            bzero(tope->datos + tope->ptrreg,
+                  tope->bulto - tope->ptrreg);
+            /* No hay datos en la toma, y se envía el remanente */
+            return CNTR_TOPE_RESTO;
+        } else
+            return CNTR_TOPE_VACIO;
+    case CNTR_ERROR:
+        return CNTR_ERROR;
     }
 
     /* Limpiar el sobrante */
@@ -197,11 +197,48 @@ cntr_rcbf_llena_tope(t_cntr_toma_es *toma)
                                    tope->bulto);
 
     switch (tope->ldatos) {
-        case 0:
-            return CNTR_TOPE_VACIO;
-        case CNTR_ERROR:
-            return CNTR_ERROR;
+    case 0:
+        return CNTR_TOPE_VACIO;
+    case CNTR_ERROR:
+        return CNTR_ERROR;
     }
 
     return CNTR_HECHO;
+}
+
+/* cntr_vacía_tope */
+
+ssize_t
+cntr_vacía_tope(t_cntr_toma_es *toma, char **sal, size_t tpm, size_t tpm_a,
+                char **sdrt, size_t *tsr)
+{
+    t_cntr_tope *tope = toma->pila->tope;
+    size_t bulto = strlen(tope->datos + tope->ptrreg);
+
+    /* Variable RT no tiene sentido leyendo flujos */
+    *sdrt = NULL;
+    *tsr = 0;
+
+    if (bulto == 0) {
+        *sal = '\0';
+        return 0;
+    }
+
+    tope->ptrreg += toma->pila->lgtreg;
+
+    /* Avanzar 'tsr' si antes de vaciar se leyó un registro */
+    if (tpm_a == 0)
+        tope->ptrreg += toma->pila->tsr;
+
+    if (bulto > tpm) {
+        *sal = strndup(tope->datos + tope->ptrreg, tpm);
+        tope->ptrreg += tpm;
+        toma->pila->lgtreg = tpm;
+    } else {
+        *sal = strdup(tope->datos + tope->ptrreg);
+        tope->ptrreg += bulto;
+        toma->pila->lgtreg = bulto;
+    }
+
+    return strlen(*sal);
 }

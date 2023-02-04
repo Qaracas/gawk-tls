@@ -62,15 +62,19 @@ static awk_bool_t (*init_func)(void) = inicia_conector;
 
 int plugin_is_GPL_compatible;
 
-/* Definiciones y variables globales */
+/* Definiciones y variables privadas */
 
 typedef char * (*recibe_toma)(t_cntr_toma_es *toma, char **sdrt, size_t *tsr);
+
+typedef struct {
+    char           *datos;
+    t_ctrn_verdad  llena  : 1;
+} t_cntr_pila;
 
 static t_cntr_ruta *rt;    /* Ruta de conexión en uso                       */
 static recibe_toma recibe; /* Puntero a función que recibe datos de la toma */
 static size_t      v_tpm;  /* Toma el valor de la variable global TPM       */
-
-static t_cntr_tope *v_tope; /* Para devolver datos sobrantes */
+static t_cntr_pila pila;   /* Para guardar los datos sobrantes de la pila   */
 
 /*
  * finaliza_conector --
@@ -83,7 +87,7 @@ finaliza_conector(void *data, int exit_status)
     (void) data;
     (void) exit_status;
 
-    cntr_borra_tope(v_tope);
+    if (pila.llena) gawk_free(pila.datos);
     cntr_borra_ruta(rt);
 }
 
@@ -649,72 +653,56 @@ conector_recibe_datos(char **out, awk_input_buf_t *tpent, int *errcode,
         return EOF;
 
     (void) desusado;
+    int bulto;
     size_t tpm;
+    extern t_cntr_pila pila;
     extern size_t v_tpm;
     extern t_cntr_ruta *rt;
     extern recibe_toma recibe;
     extern t_cntr_error cntr_error;
 
     /* Relee variable global TPM cada vez */
-    if((tpm = trae_tope_maximo()) != v_tpm) {
-
-        /* Si TMP = 0 leemos datos hasta CNTR_TOPE_MAX_X_DEF */
+    if ((tpm = trae_tope_maximo()) != v_tpm) {
         if (tpm == 0)
             recibe = &cntr_recibe_linea_toma;
         else
             recibe = &cntr_recibe_flujo_toma;
+    }
 
+    if (tpm  != v_tpm || pila.llena) {
         /* Antes de borrar el tope devolvemos el flujo restante */
-        if (v_tpm == 0) {
-            extern t_cntr_tope *v_tope;
+        if (pila.llena) gawk_free(pila.datos);
+        bulto = cntr_vacía_tope(rt->toma, &pila.datos,
+                                tpm, v_tpm, rt_start, rt_len);
 
-            /* Copiamos tope */
-            cntr_borra_tope(v_tope);
-            cntr_nuevo_tope(&v_tope, v_tpm);
-            memcpy(v_tope, rt->toma->pila->tope, sizeof(t_cntr_tope));
-            v_tope->datos = strdup(rt->toma->pila->tope->datos);
-
-            v_tope->ptrreg += rt->toma->pila->lgtreg + rt->toma->pila->tsr;
-
-            *out = v_tope->datos + v_tope->ptrreg;
-            int bulto = strlen(*out);
-
-            if (bulto > 0) {
-                /* Variable RT no tiene sentido leyendo flujos */
-                *rt_start = NULL;
-                *rt_len = 0;
-                rt->toma->pila->lgtreg = bulto;
-            }
+        if (bulto > 0) {
+            pila.llena = cntr_cierto;
+            *out = pila.datos;
+        } else {
+            pila.llena = cntr_falso;
+            cntr_borra_tope(rt->toma->pila->tope);
+            cntr_nuevo_tope(&rt->toma->pila->tope, tpm);
         }
+    } else {
+        cntr_error.número = 0;
+        *out = (*recibe)(rt->toma, rt_start, rt_len);
 
-        cntr_borra_tope(rt->toma->pila->tope);
-        cntr_nuevo_tope(&rt->toma->pila->tope, tpm);
-
-        if (v_tpm == 0)
-            goto salir;
+        if (cntr_error.número < 0)
+        {
+            *errcode = cntr_error.número;
+            update_ERRNO_int(*errcode);
+            update_ERRNO_string(cntr_msj_error("%s %s",
+                                               "conector_recibe_datos:",
+                                               cntr_error.descripción));
+            lintwarn(ext_id, cntr_msj_error("%s %s",
+                                            "conector_recibe_datos:",
+                                            cntr_error.descripción));
+            return EOF;
+        }
     }
-
-    cntr_error.número = 0;
-    *out = (*recibe)(rt->toma, rt_start, rt_len);
-
-    if (cntr_error.número < 0)
-    {
-        *errcode = cntr_error.número;
-        update_ERRNO_int(*errcode);
-        update_ERRNO_string(cntr_msj_error("%s %s",
-                                     "conector_recibe_datos:",
-                                     cntr_error.descripción));
-        lintwarn(ext_id, cntr_msj_error("%s %s",
-                                        "conector_recibe_datos:",
-                                        cntr_error.descripción));
-        return EOF;
-    }
-
-salir:
-    v_tpm = tpm;
 
     /* Número de octetos leídos */
-    if (v_tpm > 0)
+    if ((v_tpm = tpm) > 0)
         crea_actualiza_var_global_num((double)rt->toma->pila->lgtreg, "LTD");
 
     return rt->toma->pila->lgtreg;
@@ -811,12 +799,14 @@ static awk_two_way_processor_t conector_es = {
 static awk_bool_t
 inicia_conector()
 {
+    extern t_cntr_pila pila;
+
     register_ext_version(ext_version);
     register_two_way_processor(&conector_es);
 
     awk_atexit(&finaliza_conector, NULL);
 
-    cntr_nuevo_tope(&v_tope, 1);
+    pila.llena = cntr_falso;
 
     return awk_true;
 }
