@@ -44,17 +44,17 @@ BEGIN {
     # cero leeremos una cantidad TPM de 'bytes' cada vez.
     TPM = 0;
 
-    ServidorHttp = "es.wikipedia.org";
+    ServidorHttp = "www.google.com";
     #ServicioHttp = "/ired/tcp/0/0/" ServidorHttp "/80";
     ServicioHttp = "/ired/tls/0/0/" ServidorHttp "/443";
 
     creatoma(ServicioHttp);
 
     # Añade certificados de AC (opcional)
-    lisautor(ServicioHttp, "certificados/cacert.pem");
+    lisautor(ServicioHttp, "certificados/certificados_acs_raiz.pem");
 
     # Cabecera de la petición HTTP
-    print "GET /wiki/Software_libre HTTP/1.1"  |& ServicioHttp;
+    print "GET / HTTP/1.1"  |& ServicioHttp;
     print "Host: " ServidorHttp                |& ServicioHttp;
     print                                      |& ServicioHttp;
 
