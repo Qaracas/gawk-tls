@@ -682,8 +682,10 @@ conector_recibe_datos(char **out, awk_input_buf_t *tpent, int *errcode,
             pila.llena = cntr_falso;
             cntr_borra_tope(rt->toma->pila->tope);
             cntr_nuevo_tope(&rt->toma->pila->tope, tpm);
+            goto recibe_datos;
         }
     } else {
+recibe_datos:
         cntr_error.número = 0;
         *out = (*recibe)(rt->toma, rt_start, rt_len);
 

@@ -60,37 +60,47 @@ BEGIN {
 
     # Cabecera de la respuesta HTTP
     lgtd = 0;
+    metd = "";
     while (resul = (ServicioHttp |& getline)) {
         print $0;
         if (tolower($1) == "content-length:")
             lgtd = $2;
+        if (tolower($1) == "transfer-encoding:")
+            metd = $2;
         if (length($0) == 0)
             break;
-        if (resul < 0) {
-            print ERRNO;
-            break;
-        }
     }
 
-    if (lgtd == 0)  exit 0;
+    ORS = "";
+
+    while (ServicioHttp |& getline) {
+        if ((TPM = sprintf("%d", strtonum( "0x"$0)) + 0) == 0)
+            break
+        while (ServicioHttp |& getline) {
+            print $0;
+            if ((TPM -= LTD) == 0) {
+                break;
+            }
+        }
+        TPM = 6;
+        (ServicioHttp |& getline)
+        TPM = 4
+    }
+
+    exit 0;
 
     # Cuerpo de la respuesta HTTP
     TPM = 2048;
-    ORS = "";
     cont = 0;
-    while (resul = (ServicioHttp |& getline)) {
+    while (ServicioHttp |& getline) {
         print $0;
-        cont = cont + length();
-        if (cont >= lgtd)
+        if ((cont += LTD) >= lgtd)
             break;
-        if (resul < 0) {
-            print ERRNO;
-            break;
-        }
     }
 
     acabacli(ServicioHttp);
-    dtrytoma(ServicioHttp);
+# Está fallando (depurar)
+#    dtrytoma(ServicioHttp);
 
     exit 0;
 }
