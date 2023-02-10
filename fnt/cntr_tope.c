@@ -212,17 +212,12 @@ ssize_t
 cntr_vacía_tope(t_cntr_toma_es *toma, char **sal, size_t tpm, size_t tpm_a,
                 char **sdrt, size_t *tsr)
 {
+    size_t bulto;
     t_cntr_tope *tope = toma->pila->tope;
-    size_t bulto = strlen(tope->datos + tope->ptrreg);
 
     /* Variable RT no tiene sentido leyendo flujos */
     *sdrt = NULL;
     *tsr = 0;
-
-    if (bulto == 0) {
-        *sal = '\0';
-        return 0;
-    }
 
     tope->ptrreg += toma->pila->lgtreg;
 
@@ -230,13 +225,19 @@ cntr_vacía_tope(t_cntr_toma_es *toma, char **sal, size_t tpm, size_t tpm_a,
     if (tpm_a == 0)
         tope->ptrreg += toma->pila->tsr;
 
+    bulto = strlen(tope->datos + tope->ptrreg);
+
+    if (bulto == 0) {
+        *sal = '\0';
+        return 0;
+    }
+
+    (void) tpm;
     if (bulto > tpm) {
         *sal = strndup(tope->datos + tope->ptrreg, tpm);
-        tope->ptrreg += tpm;
         toma->pila->lgtreg = tpm;
     } else {
         *sal = strdup(tope->datos + tope->ptrreg);
-        tope->ptrreg += bulto;
         toma->pila->lgtreg = bulto;
     }
 
