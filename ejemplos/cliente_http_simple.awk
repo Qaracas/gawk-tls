@@ -44,7 +44,7 @@ BEGIN {
     # cero leeremos una cantidad TPM de 'bytes' cada vez.
     TPM = 0;
 
-    ServidorHttp = "www.google.com";
+    ServidorHttp = ARGV[1];
     #ServicioHttp = "/ired/tcp/0/0/" ServidorHttp "/80";
     ServicioHttp = "/ired/tls/0/0/" ServidorHttp "/443";
 
@@ -54,7 +54,7 @@ BEGIN {
     lisautor(ServicioHttp, "certificados/certificados_acs_raiz.pem");
 
     # Cabecera de la petición HTTP
-    print "GET / HTTP/1.1"  |& ServicioHttp;
+    print "GET " ARGV[2] " HTTP/1.1"  |& ServicioHttp;
     print "Host: " ServidorHttp                |& ServicioHttp;
     print                                      |& ServicioHttp;
 
@@ -74,19 +74,23 @@ BEGIN {
     ORS = "";
 
     while (ServicioHttp |& getline) {
+        if ($0 == "")
+            continue;
         if ((TPM = sprintf("%d", strtonum( "0x"$0)) + 0) == 0)
             break
+        prima=1;
         while (ServicioHttp |& getline) {
+            if (prima) {gsub(/^\r\n/, "", $0); LTD -= 2; prima=0;}
             print $0;
             if ((TPM -= LTD) == 0) {
                 break;
             }
         }
-        TPM = 6;
-        (ServicioHttp |& getline)
-        TPM = 4
+        TPM = 0;
     }
 
+    acabacli(ServicioHttp);
+#    dtrytoma(ServicioHttp);
     exit 0;
 
     # Cuerpo de la respuesta HTTP

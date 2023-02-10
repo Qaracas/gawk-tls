@@ -209,7 +209,7 @@ cntr_rcbf_llena_tope(t_cntr_toma_es *toma)
 /* cntr_vacía_tope */
 
 ssize_t
-cntr_vacía_tope(t_cntr_toma_es *toma, char **sal, size_t tpm, size_t tpm_a,
+cntr_vacía_tope(t_cntr_toma_es *toma, char **sal, size_t tpm,
                 char **sdrt, size_t *tsr)
 {
     size_t bulto;
@@ -221,19 +221,12 @@ cntr_vacía_tope(t_cntr_toma_es *toma, char **sal, size_t tpm, size_t tpm_a,
 
     tope->ptrreg += toma->pila->lgtreg;
 
-    /* Avanzar 'tsr' si antes de vaciar se leyó un registro */
-    if (tpm_a == 0)
-        tope->ptrreg += toma->pila->tsr;
-
     bulto = strlen(tope->datos + tope->ptrreg);
 
     if (bulto == 0) {
         *sal = '\0';
-        return 0;
-    }
-
-    (void) tpm;
-    if (bulto > tpm) {
+        toma->pila->lgtreg  = 0;
+    } else if (bulto > tpm) {
         *sal = strndup(tope->datos + tope->ptrreg, tpm);
         toma->pila->lgtreg = tpm;
     } else {
@@ -241,5 +234,5 @@ cntr_vacía_tope(t_cntr_toma_es *toma, char **sal, size_t tpm, size_t tpm_a,
         toma->pila->lgtreg = bulto;
     }
 
-    return strlen(*sal);
+    return toma->pila->lgtreg;
 }

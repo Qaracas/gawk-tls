@@ -672,8 +672,7 @@ conector_recibe_datos(char **out, awk_input_buf_t *tpent, int *errcode,
     if (tpm  != v_tpm || pila.llena) {
         /* Antes de borrar el tope devolvemos el flujo restante */
         if (pila.llena) gawk_free(pila.datos);
-        bulto = cntr_vacía_tope(rt->toma, &pila.datos,
-                                tpm, v_tpm, rt_start, rt_len);
+        bulto = cntr_vacía_tope(rt->toma, &pila.datos, tpm, rt_start, rt_len);
 
         if (bulto > 0) {
             pila.llena = cntr_cierto;

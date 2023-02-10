@@ -109,7 +109,7 @@ cntr_rcbf_llena_tope(t_cntr_toma_es *toma);
  */
 
 ssize_t
-cntr_vacía_tope(t_cntr_toma_es *toma, char **sal, size_t tpm, size_t tpm_a,
+cntr_vacía_tope(t_cntr_toma_es *toma, char **sal, size_t tpm,
                 char **sdrt, size_t *tsr);
 
 #endif /* TOPE_H */
