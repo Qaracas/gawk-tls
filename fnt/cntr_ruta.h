@@ -75,6 +75,6 @@ cntr_nueva_ruta(const char *nombre, t_cntr_ruta **ruta);
  */
 
 void
-cntr_borra_ruta(t_cntr_ruta *ruta);
+cntr_borra_ruta(t_cntr_ruta **ruta);
 
 #endif /* RUTA_H */

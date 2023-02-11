@@ -50,16 +50,9 @@
 int
 cntr_nuevo_tope(t_cntr_tope **tope, size_t bulto)
 {
-    cntr_limpia_error_simple();
-
-    if (tope == NULL) {
-        cntr_error(CNTR_ERROR, cntr_msj_error("%s %s",
-                             "cntr_nuevo_tope()",
-                             "tope nulo"));
-        return CNTR_ERROR;
-    }
-
     size_t v_bulto;
+
+    cntr_limpia_error_simple();
 
     if (bulto == 0)
         v_bulto = CNTR_TOPE_MAX_X_DEF;
@@ -70,11 +63,13 @@ cntr_nuevo_tope(t_cntr_tope **tope, size_t bulto)
                  sizeof(t_cntr_tope), "cntr_nuevo_tope");
     cntr_asigmem((*tope)->datos, char *,
                  v_bulto, "cntr_nuevo_tope");
+
+    bzero((*tope)->datos, v_bulto);
+
     (*tope)->bulto = v_bulto;
     (*tope)->ldatos = 0;
     (*tope)->ptrreg = 0;
     (*tope)->ptareg = 0;
-    bzero((*tope)->datos, v_bulto);
 
     return CNTR_HECHO;
 }
@@ -82,12 +77,15 @@ cntr_nuevo_tope(t_cntr_tope **tope, size_t bulto)
 /* cntr_borra_tope */
 
 void
-cntr_borra_tope(t_cntr_tope *tope)
+cntr_borra_tope(t_cntr_tope **tope)
 {
-    free(tope->datos);
-    free(tope);
-    tope->datos = NULL;
-    tope = NULL;
+    if (*tope != NULL) {
+        free((*tope)->datos);
+        free(*tope);
+        (*tope)->datos = NULL;
+        *tope = NULL;
+    }
+
 }
 
 /* cntr_envia_datos */
@@ -224,7 +222,7 @@ cntr_vacía_tope(t_cntr_toma_es *toma, char **sal, size_t tpm,
     bulto = strlen(tope->datos + tope->ptrreg);
 
     if (bulto == 0) {
-        *sal = '\0';
+        *sal = strdup("");
         toma->pila->lgtreg  = 0;
     } else if (bulto > tpm) {
         *sal = strndup(tope->datos + tope->ptrreg, tpm);

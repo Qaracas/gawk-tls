@@ -168,47 +168,54 @@ cntr_nueva_toma(t_cntr_ruta *ruta)
 /* cntr_borra_toma */
 
 void
-cntr_borra_toma(t_cntr_toma_es *toma)
+cntr_borra_toma(t_cntr_toma_es **toma)
 {
-    cntr_borra_pila_toma(toma);
-    /* Se detiene globalmente capa TLS si aplica */
-    (*toma->para_tls)(toma->gtls);
-    free(toma->gtls);
+    if (*toma != NULL) {
+        cntr_borra_pila_toma(toma);
+        /* Se detiene globalmente capa TLS si aplica */
+        (*(*toma)->para_tls)((*toma)->gtls);
+        free((*toma)->gtls);
+        (*toma)->gtls = NULL;
 #if GNU_LINUX
-    free(toma->sonda);
+        free((*toma)->sonda);
+        (*toma)->sonda = NULL;
 #endif
-    free(toma);
-    toma = NULL;
+        free(*toma);
+        *toma = NULL;
+    }
 }
 
 /* cntr_nueva_pila_toma */
 
 t_cntr_dts_toma *
-cntr_nueva_pila_toma(t_cntr_toma_es *toma, char *sr, size_t tpm)
+cntr_nueva_pila_toma(t_cntr_toma_es **toma, char *sr, size_t tpm)
 {
-    cntr_asigmem(toma->pila, t_cntr_dts_toma *,
+    cntr_asigmem((*toma)->pila, t_cntr_dts_toma *,
                  sizeof(t_cntr_dts_toma), "cntr_nueva_pila_toma");
-    toma->pila->lgtreg = 0;
-    //toma->pila->en_uso = 1;
+    cntr_asigmem((*toma)->pila->sdrt, char *,
+                 (*toma)->pila->tsr + 1, "cntr_nueva_pila_toma");
 
-    toma->pila->tsr = strlen((const char *) sr);
-    cntr_asigmem(toma->pila->sdrt, char *,
-                 toma->pila->tsr + 1, "cntr_nueva_pila_toma");
-    strcpy(toma->pila->sdrt, (const char *) sr);
+    strcpy((*toma)->pila->sdrt, (const char *) sr);
+    cntr_nuevo_tope(&(*toma)->pila->tope, tpm);
 
-    cntr_nuevo_tope(&toma->pila->tope, tpm);
+    (*toma)->pila->lgtreg = 0;
+    (*toma)->pila->tsr = strlen((const char *) sr);
 
-    return toma->pila;
+    return (*toma)->pila;
 }
 
 /* cntr_borra_pila_toma */
 
 void
-cntr_borra_pila_toma(t_cntr_toma_es *toma)
+cntr_borra_pila_toma(t_cntr_toma_es **toma)
 {
-    cntr_borra_tope(toma->pila->tope);
-    free(toma->pila->sdrt);
-    free(toma->pila);
+    if ((*toma)->pila != NULL) {
+        cntr_borra_tope(&(*toma)->pila->tope);
+        free((*toma)->pila->sdrt);
+        free((*toma)->pila);
+        (*toma)->pila->sdrt = NULL;
+        (*toma)->pila = NULL;
+    }
 }
 
 /* cntr_envia_a_toma */

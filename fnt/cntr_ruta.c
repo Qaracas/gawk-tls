@@ -156,26 +156,28 @@ cntr_nueva_ruta(const char *nombre, t_cntr_ruta **ruta)
 /* cntr_borra_ruta */
 
 void
-cntr_borra_ruta(t_cntr_ruta *ruta)
+cntr_borra_ruta(t_cntr_ruta **ruta)
 {
-    if (ruta->toma != NULL) {
-        cntr_borra_infred(ruta->toma);
-        cntr_borra_toma(ruta->toma);
+    if (*ruta != NULL) {
+        if ((*ruta)->toma != NULL) {
+            cntr_borra_infred((*ruta)->toma);
+            cntr_borra_toma(&(*ruta)->toma);
+        }
+        free((*ruta)->nombre);
+        (*ruta)->nombre = NULL;
+        free((*ruta)->tipo);
+        (*ruta)->tipo = NULL;
+        free((*ruta)->protocolo);
+        (*ruta)->protocolo = NULL;
+        free((*ruta)->nodo_local);
+        (*ruta)->nodo_local = NULL;
+        free((*ruta)->puerto_local);
+        (*ruta)->puerto_local = NULL;
+        free((*ruta)->nodo_remoto);
+        (*ruta)->nodo_remoto = NULL;
+        free((*ruta)->puerto_remoto);
+        (*ruta)->puerto_remoto = NULL;
+        free(*ruta);
+        *ruta = NULL;
     }
-    free(ruta->nombre);
-    ruta->nombre = NULL;
-    free(ruta->tipo);
-    ruta->tipo = NULL;
-    free(ruta->protocolo);
-    ruta->protocolo = NULL;
-    free(ruta->nodo_local);
-    ruta->nodo_local = NULL;
-    free(ruta->puerto_local);
-    ruta->puerto_local = NULL;
-    free(ruta->nodo_remoto);
-    ruta->nodo_remoto = NULL;
-    free(ruta->puerto_remoto);
-    ruta->puerto_remoto = NULL;
-    free(ruta);
-    ruta = NULL;
 }

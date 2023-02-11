@@ -88,7 +88,7 @@ finaliza_conector(void *data, int exit_status)
     (void) exit_status;
 
     if (pila.llena) gawk_free(pila.datos);
-    cntr_borra_ruta(rt);
+    cntr_borra_ruta(&rt);
 }
 
 /* pon_num_en_coleccion --
@@ -251,7 +251,7 @@ haz_crea_toma(int nargs, awk_value_t *resultado,
     }
 
     if (cntr_nueva_ruta(nombre_ruta, &rt) == CNTR_ERROR) {
-        cntr_borra_ruta(rt);
+        cntr_borra_ruta(&rt);
         fatal(ext_id, cntr_msj_error("%s %s",
                                      "creatoma:",
                                      cntr_error.descripción));
@@ -270,7 +270,7 @@ haz_crea_toma(int nargs, awk_value_t *resultado,
     else
         recibe = &cntr_recibe_flujo_toma;
 
-    cntr_nueva_pila_toma(rt->toma, trae_separador_de_registro(), v_tpm);
+    cntr_nueva_pila_toma(&rt->toma, trae_separador_de_registro(), v_tpm);
 
     if (cntr_error.número < 0)
         fatal(ext_id, cntr_msj_error("%s %s",
@@ -302,7 +302,7 @@ haz_crea_toma(int nargs, awk_value_t *resultado,
     }
 
     if (cntr_pon_ruta_en_serie(rt) == NULL) {
-        cntr_borra_ruta(rt);
+        cntr_borra_ruta(&rt);
         fatal(ext_id, "creatoma: error registrando ruta");
     }
 
@@ -333,7 +333,7 @@ haz_destruye_toma(int nargs, awk_value_t *resultado,
     if (comprueba_actualiza_ruta("matatoma:",
                                  nombre_ruta) == CNTR_HECHO) {
         cntr_borra_ruta_de_serie(nombre_ruta);
-        cntr_borra_ruta(rt);
+        cntr_borra_ruta(&rt);
     } else {
         lintwarn(ext_id, "matatoma: la ruta no existe");
         return make_number(-1, resultado);
@@ -679,7 +679,7 @@ conector_recibe_datos(char **out, awk_input_buf_t *tpent, int *errcode,
             *out = pila.datos;
         } else {
             pila.llena = cntr_falso;
-            cntr_borra_tope(rt->toma->pila->tope);
+            cntr_borra_tope(&rt->toma->pila->tope);
             cntr_nuevo_tope(&rt->toma->pila->tope, tpm);
             goto recibe_datos;
         }

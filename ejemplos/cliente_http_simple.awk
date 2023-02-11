@@ -54,11 +54,13 @@ BEGIN {
     lisautor(ServicioHttp, "certificados/certificados_acs_raiz.pem");
 
     # Cabecera de la petición HTTP
+
     print "GET " ARGV[2] " HTTP/1.1"  |& ServicioHttp;
     print "Host: " ServidorHttp                |& ServicioHttp;
     print                                      |& ServicioHttp;
 
     # Cabecera de la respuesta HTTP
+
     lgtd = 0;
     metd = "";
     while (resul = (ServicioHttp |& getline)) {
@@ -71,40 +73,68 @@ BEGIN {
             break;
     }
 
+    # Cuerpo de la respuesta HTTP
+
+    if (lgtd > 0 && metd == "") {
+        lee_bulto(ServicioHttp, lgtd)
+    } else if (lgtd == 0 && metd == "chunked") {
+        lee_trozos(ServicioHttp);
+    } else {
+        print "Error: respuesta http incorrecta."
+        exit 0;
+    }
+
+    acabacli(ServicioHttp);
+    dtrytoma(ServicioHttp);
+    exit 0;
+}
+
+function lee_trozos(canalxxxIP,      ors, tpm, v_tpm)
+{
+    tpm = TPM;
+    ors = ORS;
+
     ORS = "";
 
-    while (ServicioHttp |& getline) {
+    while (canalxxxIP |& getline) {
         if ($0 == "")
             continue;
-        if ((TPM = sprintf("%d", strtonum( "0x"$0)) + 0) == 0)
-            break
-        prima=1;
-        while (ServicioHttp |& getline) {
-            if (prima) {gsub(/^\r\n/, "", $0); LTD -= 2; prima=0;}
+        if ((v_tpm = sprintf("%d", strtonum("0x"$0)) + 0) == 0)
+            break;
+
+        TPM = 2; (canalxxxIP |& getline); TPM = v_tpm;
+
+        while (canalxxxIP |& getline) {
             print $0;
             if ((TPM -= LTD) == 0) {
                 break;
             }
         }
+
         TPM = 0;
     }
 
-    acabacli(ServicioHttp);
-#    dtrytoma(ServicioHttp);
-    exit 0;
+    TPM = tpm;
+    ORS = ors;
+}
 
-    # Cuerpo de la respuesta HTTP
-    TPM = 2048;
-    cont = 0;
+function lee_bulto(canalxxxIP, bulto,      ors, cnt, tpm) {
+    tpm = TPM;
+    ors = ORS;
+
+    ORS = "";
+
+    TPM = 2;
+    (canalxxxIP |& getline)
+    TPM = bulto;
+
+    cnt = 0;
     while (ServicioHttp |& getline) {
         print $0;
-        if ((cont += LTD) >= lgtd)
+        if ((cnt += LTD) >= bulto)
             break;
     }
 
-    acabacli(ServicioHttp);
-# Está fallando (depurar)
-#    dtrytoma(ServicioHttp);
-
-    exit 0;
+    TPM = tpm;
+    ORS = ors;
 }

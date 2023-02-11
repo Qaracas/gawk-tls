@@ -67,7 +67,7 @@ cntr_nuevo_tope(t_cntr_tope **tope, size_t bulto);
  */
 
 void
-cntr_borra_tope(t_cntr_tope *tope);
+cntr_borra_tope(t_cntr_tope **tope);
 
 /* cntr_envia_datos --
  *
