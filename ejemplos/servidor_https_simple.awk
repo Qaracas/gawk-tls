@@ -34,6 +34,8 @@
 
 @load "conector";
 
+@include "servidor_http_utilidades.awk";
+
 BEGIN {
     # HTTP/1.1 define la secuencia <retorno de carro> \r <salto de línea> \n
     # como delimitador para todos los elementos, excepto en el cuerpo del
@@ -51,17 +53,18 @@ BEGIN {
                        "certificados/clave_privada_servidor.pem");
     lisautor(canalTLS, "certificados/certificado_ac.pem");
 
+    respuesta[0] = "¡Hola soy un mini servidor!";
+
     while (1) {
         traepcli(canalTLS, cli);
         print "[" PROCINFO["pid"] "]",
             "Petición recibida desde " cli["dir"] ":" cli["pto"];
 
         # Procesar petición
-        salir = 0;
+        error = 0;
         while (resul = (canalTLS |& getline)) {
-            print "<", $0;
-            if ($1 == "GET" && $2 == "/salir")
-                salir = 1;
+            if ($1 == "GET" && $2 != "/hola")
+                error = 1;
             if (length($0) == 0)
                 break;
         }
@@ -72,17 +75,20 @@ BEGIN {
         }
 
         # Mandar respuesta
-        print "[" PROCINFO["pid"] "]",
-            "Respuesta enviada hacia " cli["dir"] ":" cli["pto"];
-        print "> HTTP/1.1 200 Vale";
-        print "HTTP/1.1 200 Vale" |& canalTLS;
-        print "> Connection: close";
-        print "Connection: close" |& canalTLS;
+        if (error) {
+            print "HTTP/1.1 404"      |& canalTLS;
+            print "Connection: close" |& canalTLS;
+        } else {
+            print "HTTP/1.1 200"                           |& canalTLS;
+            print "Content-Type: text/plain;charset=UTF-8" |& canalTLS;
+            print "Content-Length: " cnt_bytes(respuesta)  |& canalTLS;
+            print ""                                       |& canalTLS;
+            ORS = "";
+            print respuesta[0]                             |& canalTLS;
+            ORS = "\r\n";
+        }
 
         acabacli(canalTLS);
-
-        if (salir)
-            break;
     }
 
     acabasrv(canalTLS);

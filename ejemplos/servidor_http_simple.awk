@@ -49,15 +49,14 @@ BEGIN {
     canalTcpIP = "/ired/tcp/" ARGV[1] "/" ARGV[2] "/0/0";
     creatoma(canalTcpIP);
 
+    respuesta[0] = "¡Hola soy un mini servidor!";
+
     while (1) {
         traepcli(canalTcpIP);
 
         # Procesar petición
-        salir = 0;
         error = 0;
         while (resul = (canalTcpIP |& getline)) {
-            if ($1 == "GET" && $2 == "/salir")
-                salir = 1;
             if ($1 == "GET" && $2 != "/hola")
                 error = 1
             if (length($0) == 0)
@@ -70,27 +69,20 @@ BEGIN {
         }
 
         # Mandar respuesta
-        if (error && !salir) {
-            print "HTTP/1.1 404"                       |& canalTcpIP;
-            print "Connection: close"                  |& canalTcpIP;
-            acabacli(canalTcpIP);
-            continue;
+        if (error) {
+            print "HTTP/1.1 404"      |& canalTcpIP;
+            print "Connection: close" |& canalTcpIP;
+        } else {
+            print "HTTP/1.1 200"                           |& canalTcpIP;
+            print "Content-Type: text/plain;charset=UTF-8" |& canalTcpIP;
+            print "Content-Length: " cnt_bytes(respuesta)  |& canalTcpIP;
+            print ""                                       |& canalTcpIP;
+            ORS = "";
+            print respuesta[0]                             |& canalTcpIP;
+            ORS = "\r\n";
         }
 
-        respuesta[0] = "¡Hola soy un mini servidor!"
-
-        print "HTTP/1.1 200"                           |& canalTcpIP;
-        print "Content-Type: text/plain;charset=UTF-8" |& canalTcpIP;
-        print "Content-Length: " cnt_bytes(respuesta)  |& canalTcpIP;
-        print ""                                       |& canalTcpIP;
-        ORS = "";
-        print respuesta[0]                             |& canalTcpIP;
-        ORS = "\r\n";
-
         acabacli(canalTcpIP);
-
-        if (salir)
-            break;
     }
 
     acabasrv(canalTcpIP);
