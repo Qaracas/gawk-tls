@@ -50,7 +50,6 @@ typedef struct cntr_tope {
     int    ldatos; /* Cantidad datos almacenados   */
     char   *datos; /* Datos almacenados            */
     int    ptrreg; /* Inicio registro actual       */
-    int    ptareg; /* Inicio registro anterior     */
 } t_cntr_tope;
 
 /* cntr_nuevo_tope --

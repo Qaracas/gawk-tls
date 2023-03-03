@@ -69,7 +69,6 @@ cntr_nuevo_tope(t_cntr_tope **tope, size_t bulto)
     (*tope)->bulto = v_bulto;
     (*tope)->ldatos = 0;
     (*tope)->ptrreg = 0;
-    (*tope)->ptareg = 0;
 
     return CNTR_HECHO;
 }
@@ -173,7 +172,6 @@ cntr_rcbl_llena_tope(t_cntr_toma_es *toma)
         bzero(tope->datos + (tope->ldatos + tope->ptrreg),
               tope->bulto - (tope->ldatos + tope->ptrreg));
 
-    tope->ptareg = tope->ptrreg;
     tope->ptrreg = 0;
 
     return CNTR_HECHO;

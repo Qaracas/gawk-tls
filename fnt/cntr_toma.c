@@ -174,11 +174,15 @@ cntr_borra_toma(t_cntr_toma_es **toma)
         cntr_borra_pila_toma(toma);
         /* Se detiene globalmente capa TLS si aplica */
         (*(*toma)->para_tls)((*toma)->gtls);
-        free((*toma)->gtls);
-        (*toma)->gtls = NULL;
+        if ((*toma)->gtls != NULL) {
+            free((*toma)->gtls);
+            (*toma)->gtls = NULL;
+        }
 #if GNU_LINUX
-        free((*toma)->sonda);
-        (*toma)->sonda = NULL;
+        if ((*toma)->sonda != NULL) {
+            free((*toma)->sonda);
+            (*toma)->sonda = NULL;
+        }
 #endif
         free(*toma);
         *toma = NULL;
@@ -276,12 +280,11 @@ cntr_recibe_linea_toma(t_cntr_toma_es *toma, char **sdrt, size_t *tsr)
                                  "desbordamiento de pila"));
             return NULL;
         }
-        *tsr = 0;
         /* Copia lo que nos queda por leer al inicio del tope */
         memcpy(tope->datos,
                (const void *) (tope->datos + tope->ptrreg),
-               (tope->ldatos + tope->ptareg) - tope->ptrreg);
-        tope->ptrreg = (tope->ldatos + tope->ptareg) - tope->ptrreg;
+               tope->ldatos - tope->ptrreg);
+        tope->ptrreg = tope->ldatos - tope->ptrreg;
         tope->ldatos = 0;
         return cntr_recibe_linea_toma(toma, sdrt, tsr);
     }
