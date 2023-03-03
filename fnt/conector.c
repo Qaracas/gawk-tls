@@ -661,11 +661,15 @@ conector_recibe_datos(char **out, awk_input_buf_t *tpent, int *errcode,
     extern recibe_toma recibe;
     extern t_cntr_error cntr_error;
 
-    /* Relee variable global TPM cada vez */
+    /* Lee la variable global TPM cada vez */
     if ((tpm = trae_tope_maximo()) != v_tpm) {
-        if (tpm == 0)
+        if (tpm == 0) {
             recibe = &cntr_recibe_linea_toma;
-        else
+            if (rt->toma->pila->lgtreg >= (size_t)rt->toma->pila->tope->ldatos)
+                goto borra_tope;
+            else
+                goto recibe_datos;
+        } else
             recibe = &cntr_recibe_flujo_toma;
     }
 
@@ -678,6 +682,7 @@ conector_recibe_datos(char **out, awk_input_buf_t *tpent, int *errcode,
             pila.llena = cntr_cierto;
             *out = pila.datos;
         } else {
+borra_tope:
             pila.llena = cntr_falso;
             cntr_borra_tope(&rt->toma->pila->tope);
             cntr_nuevo_tope(&rt->toma->pila->tope, tpm);
