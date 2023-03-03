@@ -87,8 +87,8 @@ finaliza_conector(void *data, int exit_status)
     (void) data;
     (void) exit_status;
 
-    if (pila.llena) gawk_free(pila.datos);
-    cntr_borra_ruta(&rt);
+    if (pila.llena)
+        gawk_free(pila.datos);
 }
 
 /* pon_num_en_coleccion --
@@ -675,7 +675,8 @@ conector_recibe_datos(char **out, awk_input_buf_t *tpent, int *errcode,
 
     if (tpm  != v_tpm || pila.llena) {
         /* Antes de borrar el tope devolvemos el flujo restante */
-        if (pila.llena) gawk_free(pila.datos);
+        if (pila.llena)
+            gawk_free(pila.datos);
         bulto = cntr_vacía_tope(rt->toma, &pila.datos, tpm, rt_start, rt_len);
 
         if (bulto > 0) {
@@ -811,8 +812,6 @@ inicia_conector()
     register_two_way_processor(&conector_es);
 
     awk_atexit(&finaliza_conector, NULL);
-
-    pila.llena = cntr_falso;
 
     return awk_true;
 }
