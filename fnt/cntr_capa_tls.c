@@ -185,7 +185,7 @@ cntr_arranque_global_capa_tls_cliente(t_capa_gnutls *capatls)
 {
     __arranque_global_capa_tls(capatls);
 
-    capatls->usándose = cntr_cierto;
+    capatls->en_uso = cntr_cierto;
 
     /* Ver función cntr_dialoga_envia_datos_capa_tls() */
     capatls->sesión_guardada = cntr_falso;
@@ -221,7 +221,7 @@ cntr_arranque_global_capa_tls_servidor(t_capa_gnutls *capatls)
         "cntr_arranque_global_capa_tls_servidor()");
 #endif
 
-    capatls->usándose = cntr_cierto;
+    capatls->en_uso = cntr_cierto;
 
     /* Ver función cntr_dialoga_envia_datos_capa_tls()
      * Aquí no sirve: el servidor no reanuda sesiones */
@@ -248,11 +248,11 @@ void
 cntr_parada_global_capa_tls(t_capa_gnutls *capatls)
 {
     if (   capatls == NULL
-        || capatls->usándose) {
+        || capatls->en_uso) {
         gnutls_certificate_free_credentials(capatls->credx509);
         gnutls_priority_deinit(capatls->prioridad);
         gnutls_global_deinit();
-        capatls->usándose = cntr_falso;
+        capatls->en_uso = cntr_falso;
     }
 }
 
@@ -262,10 +262,10 @@ void
 cntr_parada_global_capa_tls_noprds(t_capa_gnutls *capatls)
 {
     if (   capatls == NULL
-        || capatls->usándose) {
+        || capatls->en_uso) {
         gnutls_certificate_free_credentials(capatls->credx509);
         gnutls_global_deinit();
-        capatls->usándose = cntr_falso;
+        capatls->en_uso = cntr_falso;
     }
 }
 
@@ -523,7 +523,7 @@ cntr_par_clave_privada_y_certificado_tls(t_capa_gnutls *capatls,
     cntr_limpia_error(resul);
 
     if (   capatls == NULL
-        || !capatls->usándose) {
+        || !capatls->en_uso) {
         cntr_error(resul, cntr_msj_error("%s %s",
                             "cntr_par_clave_privada_y_certificado_tls()",
                             "no se ha iniciado capa TLS"));
@@ -549,7 +549,7 @@ cntr_fichero_autoridades_certificadoras_tls(t_capa_gnutls *capatls,
     cntr_limpia_error(resul);
 
     if (   capatls == NULL
-        || !capatls->usándose) {
+        || !capatls->en_uso) {
         cntr_error(resul, cntr_msj_error("%s %s",
                             "cntr_fichero_autoridades_certificadoras_tls()",
                             "no se ha iniciado capa TLS"));

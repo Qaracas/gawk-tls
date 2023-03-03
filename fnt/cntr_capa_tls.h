@@ -76,7 +76,7 @@ typedef struct capa_gnutls {
     gnutls_priority_t                prioridad;     /* De cifrado y claves  */
     gnutls_session_t                 sesión;        /* Sesión TLS           */
     gnutls_dds_t                     dd_sesión;     /* Si reutiliza sesión  */
-    t_ctrn_verdad                    usándose : 1;
+    t_ctrn_verdad                    en_uso : 1;
     t_ctrn_verdad                    sesión_iniciada : 1;
     t_ctrn_verdad                    sesión_guardada : 1;
 } t_capa_gnutls;
