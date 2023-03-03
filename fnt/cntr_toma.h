@@ -112,7 +112,7 @@ typedef struct cntr_toma_es {
     func_diálogo    ini_diálogo_tls;   /* Iniciar diálogo TLS              */
     func_envía      envia;             /* Enviar datos                     */
     func_recibe     recibe;            /* Recibir datos                    */
-    func_para       para_tls;          /* Parar globlemente TLS            */
+    func_para       para_tls;          /* Parar globalmente TLS            */
     func_cierra     cierra_tm_cli_tls; /* Cerrar toma TLS cliente          */
     func_cierra     cierra_tm_srv_tls; /* Cerrar toma TLS servidor         */
 } t_cntr_toma_es;
