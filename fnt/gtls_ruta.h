@@ -32,39 +32,49 @@
  * not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef SERIE_H
-#define SERIE_H
+#ifndef RUTA_H
+#define RUTA_H
 
-struct cntr_ruta;
-typedef struct cntr_ruta t_cntr_ruta;
+struct addrinfo;
 
-typedef struct cntr_pieza {
-    t_cntr_ruta       *ruta;       /* Ruta de conexión */
-    struct cntr_pieza *siguiente;  /* Siguiente pieza  */
-} t_cntr_pieza;
+struct gtls_toma_es;
+typedef struct gtls_toma_es t_gtls_toma_es;
 
-/* cntr_pon_ruta_en_serie --
+#ifndef T_CTRN_VERDAD
+#define T_CTRN_VERDAD
+typedef enum gtls_verdad {
+    gtls_falso  = 0,
+    gtls_cierto = 1
+} t_ctrn_verdad;
+#endif
+
+typedef struct gtls_ruta {
+    char            *nombre;        /* Identificador de ruta         */
+    char            *tipo;          /* Normalmente ired              */
+    char            *protocolo;     /* O capa (TCP/TLS)              */
+    char            *nodo_local;    /* Nombre o dir IP del nodo      */
+    char            *puerto_local;  /* Puerto de E/S                 */
+    char            *nodo_remoto;   /* Nombre o dir IP del nodo      */
+    char            *puerto_remoto; /* Puerto remoto de E/S          */
+    t_gtls_toma_es  *toma;          /* Toma de datos de E/S          */
+    t_ctrn_verdad   cliente : 1;    /* Es de tipo cliente o servidor */
+    t_ctrn_verdad   segura  : 1;    /* Si protocolo = tls es segura  */
+} t_gtls_ruta;
+
+/* gtls_nueva_ruta --
  *
- * Añade una nueva ruta a la cadena
+ * Crea nueva ruta a partir de un fichero especial
  */
 
-t_cntr_ruta *
-cntr_pon_ruta_en_serie(t_cntr_ruta *ruta);
+int
+gtls_nueva_ruta(const char *nombre, t_gtls_ruta **ruta);
 
-/* cntr_borra_ruta_de_serie --
+/* gtls_borra_ruta --
  *
- * Borra una ruta de la cadena
+ * Libera memoria y destruye toma
  */
 
 void
-cntr_borra_ruta_de_serie(const char *nombre_ruta);
+gtls_borra_ruta(t_gtls_ruta **ruta);
 
-/* cntr_busca_ruta_en_serie --
- *
- * Busca una ruta en la cadena
- */
-
-t_cntr_ruta *
-cntr_busca_ruta_en_serie(const char *nombre_ruta);
-
-#endif /* SERIE_H */
+#endif /* RUTA_H */

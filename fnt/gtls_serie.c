@@ -35,22 +35,22 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include "cntr_defcom.h"
-#include "cntr_ruta.h"
-#include "cntr_toma.h"
-#include "cntr_stoma.h"
-#include "cntr_serie.h"
+#include "gtls_defcom.h"
+#include "gtls_ruta.h"
+#include "gtls_toma.h"
+#include "gtls_stoma.h"
+#include "gtls_serie.h"
 
-static t_cntr_pieza *serie;
+static t_gtls_pieza *serie;
 
 /* privada - __pon_ruta_en_serie */
 
-static t_cntr_ruta *
-__pon_ruta_en_serie(t_cntr_ruta *ruta, t_cntr_pieza **serie)
+static t_gtls_ruta *
+__pon_ruta_en_serie(t_gtls_ruta *ruta, t_gtls_pieza **serie)
 {
     if (*serie == NULL) {
-        cntr_asigmem(*serie, t_cntr_pieza *,
-                     sizeof(t_cntr_pieza), "cntr_pon_ruta_en_serie");
+        gtls_asigmem(*serie, t_gtls_pieza *,
+                     sizeof(t_gtls_pieza), "gtls_pon_ruta_en_serie");
         (*serie)->ruta = ruta;
         (*serie)->siguiente = NULL;
     } else if (strcmp(ruta->nombre, (*serie)->ruta->nombre) == 0) {
@@ -64,12 +64,12 @@ __pon_ruta_en_serie(t_cntr_ruta *ruta, t_cntr_pieza **serie)
 /* privada - __borra_ruta_en_serie */
 
 static void
-__borra_ruta_en_serie(const char *nombre_ruta, t_cntr_pieza **serie)
+__borra_ruta_en_serie(const char *nombre_ruta, t_gtls_pieza **serie)
 {
     if (nombre_ruta != NULL && *serie != NULL) {
         if (strcmp(nombre_ruta,
                    (const char *)(*serie)->ruta->nombre) == 0) {
-            //cntr_borra_ruta((*serie)->ruta);
+            //gtls_borra_ruta((*serie)->ruta);
             if ((*serie)->siguiente == NULL ) {
                 free(*serie);
                 *serie = NULL;
@@ -84,8 +84,8 @@ __borra_ruta_en_serie(const char *nombre_ruta, t_cntr_pieza **serie)
 
 /* privada - __busca_ruta_en_serie */
 
-static t_cntr_ruta *
-__busca_ruta_en_serie(const char *nombre_ruta, t_cntr_pieza *serie)
+static t_gtls_ruta *
+__busca_ruta_en_serie(const char *nombre_ruta, t_gtls_pieza *serie)
 {
     if (nombre_ruta == NULL || serie == NULL)
         return NULL;
@@ -96,36 +96,36 @@ __busca_ruta_en_serie(const char *nombre_ruta, t_cntr_pieza *serie)
     return NULL;
 }
 
-/* cntr_pon_ruta_en_serie */
+/* gtls_pon_ruta_en_serie */
 
-t_cntr_ruta *
-cntr_pon_ruta_en_serie(t_cntr_ruta *ruta)
+t_gtls_ruta *
+gtls_pon_ruta_en_serie(t_gtls_ruta *ruta)
 {
-    extern t_cntr_pieza *serie;
+    extern t_gtls_pieza *serie;
 
     return __pon_ruta_en_serie(ruta, &serie);
 }
 
 #define __pon_ruta_en_serie call function
 
-/* cntr_borra_ruta_de_serie */
+/* gtls_borra_ruta_de_serie */
 
 void
-cntr_borra_ruta_de_serie(const char *nombre_ruta)
+gtls_borra_ruta_de_serie(const char *nombre_ruta)
 {
-    extern t_cntr_pieza *serie;
+    extern t_gtls_pieza *serie;
 
     __borra_ruta_en_serie(nombre_ruta, &serie);
 }
 
 #define __borra_ruta_en_serie call function
 
-/* cntr_busca_ruta_en_serie */
+/* gtls_busca_ruta_en_serie */
 
-t_cntr_ruta *
-cntr_busca_ruta_en_serie(const char *nombre_ruta)
+t_gtls_ruta *
+gtls_busca_ruta_en_serie(const char *nombre_ruta)
 {
-    extern t_cntr_pieza *serie;
+    extern t_gtls_pieza *serie;
 
     return __busca_ruta_en_serie(nombre_ruta, serie);
 }

@@ -32,44 +32,65 @@
  * not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <string.h>
-#include <stdlib.h>
-#include <stdarg.h>
+#include <stdio.h>
 
-#include "cntr_defcom.h"
+#ifndef DEFCOM_H
+#define DEFCOM_H
 
-t_cntr_error cntr_error = {0, NULL};
+#define CNTR_HECHO      (0)
+#define CNTR_ERROR      (-5)
+#define CNTR_DF_NULO    (-1)
 
-/* cntr_msj_error */
+#define gtls_ltd(x) (sizeof(x) / sizeof((x)[0]))
+
+#define gtls_asigmem(puntero, tipo, cabida, mensaje) \
+    do { \
+        if ((puntero = (tipo) malloc(cabida)) == 0) \
+            printf("%s: fallo reservando %d octetos de memoria", \
+                   mensaje, (int)cabida); \
+    } while(0)
+
+#define gtls_limpia_error_simple() \
+    do { \
+        extern t_gtls_error gtls_error; \
+        gtls_error.número = 0; \
+        gtls_error.descripción = NULL; \
+    } while(0)
+
+#define gtls_limpia_error(numerror) \
+    do { \
+        extern t_gtls_error gtls_error; \
+        numerror = 0; \
+        gtls_error.número = 0; \
+        gtls_error.descripción = NULL; \
+    } while(0)
+
+#define gtls_error(numerror, descripción_error) \
+    do { \
+        extern t_gtls_error gtls_error; \
+        gtls_error.número = numerror; \
+        gtls_error.descripción = descripción_error; \
+    } while(0)
+
+#ifndef T_CTRN_VERDAD
+#define T_CTRN_VERDAD
+typedef enum gtls_verdad {
+    gtls_falso  = 0,
+    gtls_cierto = 1
+} t_ctrn_verdad;
+#endif
+
+typedef struct gtls_error {
+    int  número;       /* Número de error       */
+    char *descripción; /* Descripción del error */
+} t_gtls_error;
+
+/* gtls_msj_error --
+ *
+ * Forma mensaje de error a partir de un resultado y un texto dado
+ */
 
 char *
-cntr_msj_error(const char *desc, ...)
-{
-    /* Variable para almacenar la lista de argumentos */
-    va_list lista_args;
-    char *ds;
-    char msj_error[128] = "";
+gtls_msj_error(const char *desc, ...);
 
-    va_start(lista_args, desc);
-
-    while (*desc) {
-        switch (*desc++) {
-        case '%':   /* Prefijo texto */
-            if (*desc++ == 's') {
-                ds = va_arg(lista_args, char *);
-                strcat(msj_error, ds);
-            } else
-                return NULL;
-            break;
-        case ' ':   /* Espacio */
-            strcat(msj_error, " ");
-            break;
-        default:
-            return NULL;
-       }
-    }
-
-    va_end(lista_args);
-
-    return strdup(msj_error);
-}
+#endif /* DEFCOM_H */

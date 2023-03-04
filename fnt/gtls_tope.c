@@ -39,30 +39,30 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 
-#include "cntr_defcom.h"
-#include "cntr_ruta.h"
-#include "cntr_toma.h"
-#include "cntr_tope.h"
-#include "cntr_capa_tls.h"
+#include "gtls_defcom.h"
+#include "gtls_ruta.h"
+#include "gtls_toma.h"
+#include "gtls_tope.h"
+#include "gtls_capa_tls.h"
 
-/* cntr_nuevo_tope */
+/* gtls_nuevo_tope */
 
 int
-cntr_nuevo_tope(t_cntr_tope **tope, size_t bulto)
+gtls_nuevo_tope(t_gtls_tope **tope, size_t bulto)
 {
     size_t v_bulto;
 
-    cntr_limpia_error_simple();
+    gtls_limpia_error_simple();
 
     if (bulto == 0)
         v_bulto = CNTR_TOPE_MAX_X_DEF;
     else
         v_bulto = bulto;
 
-    cntr_asigmem(*tope, t_cntr_tope *,
-                 sizeof(t_cntr_tope), "cntr_nuevo_tope");
-    cntr_asigmem((*tope)->datos, char *,
-                 v_bulto, "cntr_nuevo_tope");
+    gtls_asigmem(*tope, t_gtls_tope *,
+                 sizeof(t_gtls_tope), "gtls_nuevo_tope");
+    gtls_asigmem((*tope)->datos, char *,
+                 v_bulto, "gtls_nuevo_tope");
 
     bzero((*tope)->datos, v_bulto);
 
@@ -73,10 +73,10 @@ cntr_nuevo_tope(t_cntr_tope **tope, size_t bulto)
     return CNTR_HECHO;
 }
 
-/* cntr_borra_tope */
+/* gtls_borra_tope */
 
 void
-cntr_borra_tope(t_cntr_tope **tope)
+gtls_borra_tope(t_gtls_tope **tope)
 {
     if (*tope != NULL) {
         free((*tope)->datos);
@@ -87,21 +87,21 @@ cntr_borra_tope(t_cntr_tope **tope)
 
 }
 
-/* cntr_envia_datos */
+/* gtls_envia_datos */
 
 ssize_t
-cntr_envia_datos(t_capa_gnutls *capatls, int df_cliente,
+gtls_envia_datos(t_capa_gnutls *capatls, int df_cliente,
                  const void *tope, size_t bulto)
 {
     (void) capatls;
     extern int errno;
     ssize_t resul;
 
-    cntr_limpia_error(errno);
+    gtls_limpia_error(errno);
     BUCLE_VERIFICA(resul, send(df_cliente, tope, bulto, 0));
     if (resul < 0) {
-        cntr_error(errno, cntr_msj_error("%s %s",
-                             "cntr_envia_datos()",
+        gtls_error(errno, gtls_msj_error("%s %s",
+                             "gtls_envia_datos()",
                              strerror(errno)));
         return CNTR_ERROR;
     }
@@ -109,10 +109,10 @@ cntr_envia_datos(t_capa_gnutls *capatls, int df_cliente,
     return resul;
 }
 
-/* cntr_recibe_datos */
+/* gtls_recibe_datos */
 
 ssize_t
-cntr_recibe_datos(t_capa_gnutls *capatls, int df_cliente, void *tope,
+gtls_recibe_datos(t_capa_gnutls *capatls, int df_cliente, void *tope,
                   size_t bulto)
 {
     (void) capatls;
@@ -120,14 +120,14 @@ cntr_recibe_datos(t_capa_gnutls *capatls, int df_cliente, void *tope,
     ssize_t resul;
 
     for (;;) {
-        cntr_limpia_error(errno);
+        gtls_limpia_error(errno);
         BUCLE_VERIFICA(resul, recv(df_cliente, tope, bulto, 0));
         if (resul == 0) {
             /* El interlocutor cierra la conexión (fin de flujo) */
             break;
         } else if (resul < 0 && errno !=  EWOULDBLOCK) {
-            cntr_error(errno, cntr_msj_error("%s %s",
-                                 "cntr_recibe_datos()",
+            gtls_error(errno, gtls_msj_error("%s %s",
+                                 "gtls_recibe_datos()",
                                  strerror(errno)));
             return CNTR_ERROR;
         } else {
@@ -139,12 +139,12 @@ cntr_recibe_datos(t_capa_gnutls *capatls, int df_cliente, void *tope,
     return resul;
 }
 
-/* cntr_rcbl_llena_tope */
+/* gtls_rcbl_llena_tope */
 
 int
-cntr_rcbl_llena_tope(t_cntr_toma_es *toma)
+gtls_rcbl_llena_tope(t_gtls_toma_es *toma)
 {
-    t_cntr_tope *tope = toma->pila->tope;
+    t_gtls_tope *tope = toma->pila->tope;
 
     if (   toma == NULL || tope == NULL
         || toma->cliente == CNTR_DF_NULO)
@@ -177,12 +177,12 @@ cntr_rcbl_llena_tope(t_cntr_toma_es *toma)
     return CNTR_HECHO;
 }
 
-/* cntr_rcbf_llena_tope */
+/* gtls_rcbf_llena_tope */
 
 int
-cntr_rcbf_llena_tope(t_cntr_toma_es *toma)
+gtls_rcbf_llena_tope(t_gtls_toma_es *toma)
 {
-    t_cntr_tope *tope = toma->pila->tope;
+    t_gtls_tope *tope = toma->pila->tope;
 
     if (   toma == NULL || tope == NULL
         || toma->cliente == CNTR_DF_NULO)
@@ -202,14 +202,14 @@ cntr_rcbf_llena_tope(t_cntr_toma_es *toma)
     return CNTR_HECHO;
 }
 
-/* cntr_vacía_tope */
+/* gtls_vacía_tope */
 
 ssize_t
-cntr_vacía_tope(t_cntr_toma_es *toma, char **sal, size_t tpm,
+gtls_vacía_tope(t_gtls_toma_es *toma, char **sal, size_t tpm,
                 char **sdrt, size_t *tsr)
 {
     size_t bulto;
-    t_cntr_tope *tope = toma->pila->tope;
+    t_gtls_tope *tope = toma->pila->tope;
 
     /* Variable RT no tiene sentido leyendo flujos */
     *sdrt = NULL;

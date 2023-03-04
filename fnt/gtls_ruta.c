@@ -36,10 +36,10 @@
 #include <string.h>
 #include <regex.h>
 
-#include "cntr_defcom.h"
-#include "cntr_ruta.h"
-#include "cntr_toma.h"
-#include "cntr_stoma.h"
+#include "gtls_defcom.h"
+#include "gtls_ruta.h"
+#include "gtls_toma.h"
+#include "gtls_stoma.h"
 
 /*
  * Nombres especiales para los ficheros de red (nombre o id de ruta)
@@ -63,15 +63,15 @@ static const char *erp_cli =
 /* privada - __procesa_nombre_ruta */
 
 static int
-__procesa_nombre_ruta(const char *nombre, t_cntr_ruta **ruta)
+__procesa_nombre_ruta(const char *nombre, t_gtls_ruta **ruta)
 {
     regex_t expreg_srv, expreg_cli;
 
     /* Compilar expresiones regulares de la ruta */
     if (   regcomp(&expreg_srv, erp_srv, REG_EXTENDED)
         || regcomp(&expreg_cli, erp_cli, REG_EXTENDED)) {
-        cntr_error(CNTR_ERROR, cntr_msj_error("%s %s",
-                             "cntr_nueva_ruta()",
+        gtls_error(CNTR_ERROR, gtls_msj_error("%s %s",
+                             "gtls_nueva_ruta()",
                              "Error interno al compilar e.r."));
         return CNTR_ERROR;
     }
@@ -79,22 +79,22 @@ __procesa_nombre_ruta(const char *nombre, t_cntr_ruta **ruta)
     /* Ejecutar expresiones regulares */
     if (   regexec(&expreg_srv, nombre, 0, NULL, 0)
         && regexec(&expreg_cli, nombre, 0, NULL, 0)) {
-        cntr_error(CNTR_ERROR, cntr_msj_error("%s %s",
-                             "cntr_nueva_ruta()",
+        gtls_error(CNTR_ERROR, gtls_msj_error("%s %s",
+                             "gtls_nueva_ruta()",
                              "nombre de ruta incorrecto"));
         return CNTR_ERROR;
     }
 
     char *v_nombre;
-    cntr_asigmem(v_nombre, char *,
+    gtls_asigmem(v_nombre, char *,
                  strlen((const char *) nombre) + 1,
-                 "cntr_nueva_ruta");
+                 "gtls_nueva_ruta");
     strcpy(v_nombre, (const char *) nombre);
 
     unsigned int c;
     char *campo[6];
     campo[0] = strtok(v_nombre, "/");
-    for (c = 0; (c < cntr_ltd(campo) - 1) && campo[c] != NULL;)
+    for (c = 0; (c < gtls_ltd(campo) - 1) && campo[c] != NULL;)
         campo[++c] = strtok(NULL, "/");
 
     (*ruta)->tipo = strdup(campo[0]);
@@ -105,11 +105,11 @@ __procesa_nombre_ruta(const char *nombre, t_cntr_ruta **ruta)
     (*ruta)->puerto_remoto = strdup(campo[5]);
 
     if (strcmp((*ruta)->protocolo, "tls") == 0)
-        (*ruta)->segura = cntr_cierto;
+        (*ruta)->segura = gtls_cierto;
 
     if (   strcmp((*ruta)->nodo_local, "0") == 0
         && strcmp((*ruta)->puerto_local, "0") == 0)
-        (*ruta)->cliente = cntr_cierto;
+        (*ruta)->cliente = gtls_cierto;
 
     regfree(&expreg_srv);
     regfree(&expreg_cli);
@@ -118,16 +118,16 @@ __procesa_nombre_ruta(const char *nombre, t_cntr_ruta **ruta)
     return CNTR_HECHO;
 }
 
-/* cntr_nueva_ruta */
+/* gtls_nueva_ruta */
 
 int
-cntr_nueva_ruta(const char *nombre, t_cntr_ruta **ruta)
+gtls_nueva_ruta(const char *nombre, t_gtls_ruta **ruta)
 {
-    cntr_limpia_error_simple();
+    gtls_limpia_error_simple();
 
-    cntr_asigmem(*ruta, t_cntr_ruta *,
-                 sizeof(t_cntr_ruta),
-                 "cntr_nueva_ruta");
+    gtls_asigmem(*ruta, t_gtls_ruta *,
+                 sizeof(t_gtls_ruta),
+                 "gtls_nueva_ruta");
 
     (*ruta)->nombre = NULL;
     (*ruta)->tipo = NULL;
@@ -137,15 +137,15 @@ cntr_nueva_ruta(const char *nombre, t_cntr_ruta **ruta)
     (*ruta)->nodo_remoto = NULL;
     (*ruta)->puerto_remoto = NULL;
     (*ruta)->toma = NULL;
-    (*ruta)->segura = cntr_falso;
-    (*ruta)->cliente = cntr_falso;
+    (*ruta)->segura = gtls_falso;
+    (*ruta)->cliente = gtls_falso;
 
     if (__procesa_nombre_ruta(nombre, ruta) == CNTR_ERROR)
         return CNTR_ERROR;
 
-    cntr_asigmem((*ruta)->nombre, char *,
+    gtls_asigmem((*ruta)->nombre, char *,
                  strlen((const char *) nombre) + 1,
-                 "cntr_nueva_ruta");
+                 "gtls_nueva_ruta");
     strcpy((*ruta)->nombre, (const char *) nombre);
 
     return CNTR_HECHO;
@@ -153,15 +153,15 @@ cntr_nueva_ruta(const char *nombre, t_cntr_ruta **ruta)
 
 #define __procesa_nombre_ruta call function
 
-/* cntr_borra_ruta */
+/* gtls_borra_ruta */
 
 void
-cntr_borra_ruta(t_cntr_ruta **ruta)
+gtls_borra_ruta(t_gtls_ruta **ruta)
 {
     if (*ruta != NULL) {
         if ((*ruta)->toma != NULL) {
-            cntr_borra_infred((*ruta)->toma);
-            cntr_borra_toma(&(*ruta)->toma);
+            gtls_borra_infred((*ruta)->toma);
+            gtls_borra_toma(&(*ruta)->toma);
         }
         free((*ruta)->nombre);
         (*ruta)->nombre = NULL;

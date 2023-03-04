@@ -32,7 +32,7 @@
 # License along with this software; see the file LICENSE. If
 # not, see <https://www.gnu.org/licenses/>.
 
-@load "conector";
+@load "gawk_tls";
 
 BEGIN {
     # HTTP/1.1 define la secuencia <retorno de carro> \r <salto de línea> \n
@@ -64,7 +64,7 @@ BEGIN {
     lgtd = 0;
     metd = "";
     while (resul = (ServicioHttp |& getline)) {
-        print $0;
+#        print $0;
         if (tolower($1) == "content-length:")
             lgtd = $2;
         if (tolower($1) == "transfer-encoding:")

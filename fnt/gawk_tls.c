@@ -45,44 +45,44 @@
 
 #include <arpa/inet.h>
 
-#include "cntr_capa_tls.h"
-#include "cntr_defcom.h"
-#include "cntr_ruta.h"
-#include "cntr_toma.h"
-#include "cntr_stoma.h"
-#include "cntr_tope.h"
-#include "cntr_serie.h"
+#include "gtls_capa_tls.h"
+#include "gtls_defcom.h"
+#include "gtls_ruta.h"
+#include "gtls_toma.h"
+#include "gtls_stoma.h"
+#include "gtls_tope.h"
+#include "gtls_serie.h"
 
 static const gawk_api_t *api; /* Conveniencia para usar macros */
 static awk_ext_id_t ext_id;
-static const char *ext_version = "extensión conector: versión 1.0";
+static const char *ext_version = "extensión gawk_tls: versión 1.0";
 
-static awk_bool_t inicia_conector(void);
-static awk_bool_t (*init_func)(void) = inicia_conector;
+static awk_bool_t inicia_gawk_tls(void);
+static awk_bool_t (*init_func)(void) = inicia_gawk_tls;
 
 int plugin_is_GPL_compatible;
 
 /* Definiciones y variables privadas */
 
-typedef char * (*recibe_toma)(t_cntr_toma_es *toma, char **sdrt, size_t *tsr);
+typedef char * (*recibe_toma)(t_gtls_toma_es *toma, char **sdrt, size_t *tsr);
 
 typedef struct {
     char           *datos;
     t_ctrn_verdad  llena  : 1;
-} t_cntr_pila;
+} t_gtls_pila;
 
-static t_cntr_ruta *rt;    /* Ruta de conexión en uso                       */
+static t_gtls_ruta *rt;    /* Ruta de conexión en uso                       */
 static recibe_toma recibe; /* Puntero a función que recibe datos de la toma */
 static size_t      v_tpm;  /* Toma el valor de la variable global TPM       */
-static t_cntr_pila pila;   /* Para guardar los datos sobrantes de la pila   */
+static t_gtls_pila pila;   /* Para guardar los datos sobrantes de la pila   */
 
 /*
- * finaliza_conector --
+ * finaliza_gawk_tls --
  *
  */
 
 static void
-finaliza_conector(void *data, int exit_status)
+finaliza_gawk_tls(void *data, int exit_status)
 {
     (void) data;
     (void) exit_status;
@@ -130,20 +130,20 @@ pon_txt_en_coleccion(awk_array_t coleccion, const char *sub, const char *txt)
 static int
 comprueba_actualiza_ruta(const char *nombre_func, const char *nombre_ruta)
 {
-    extern t_cntr_ruta *rt;
+    extern t_gtls_ruta *rt;
 
     if (strcmp(nombre_ruta, "") == 0 || nombre_ruta == NULL) {
-        fatal(ext_id, cntr_msj_error("%s %s",
+        fatal(ext_id, gtls_msj_error("%s %s",
                              nombre_func,
                              "error leyendo nombre de fichero especial"));
     }
 
     if (   (   rt != NULL
             && strcmp(nombre_ruta, (const char *)rt->nombre) == 0)
-        || (rt = cntr_busca_ruta_en_serie(nombre_ruta)) != NULL) {
+        || (rt = gtls_busca_ruta_en_serie(nombre_ruta)) != NULL) {
         return CNTR_HECHO;
     } else {
-        cntr_error(CNTR_ERROR, cntr_msj_error("%s",
+        gtls_error(CNTR_ERROR, gtls_msj_error("%s",
                              "toma de datos inexistente"));
         return CNTR_ERROR;
     }
@@ -217,7 +217,7 @@ crea_actualiza_var_global_num(double num, char *var)
 }
 
 /**
- * Funciones que proporciona 'conector.c' a GAWK
+ * Funciones que proporciona 'gawk_tls.c' a GAWK
  */
 
 /* haz_crea_toma --
@@ -233,8 +233,8 @@ haz_crea_toma(int nargs, awk_value_t *resultado,
     awk_value_t nombre;
     extern size_t v_tpm;
     extern recibe_toma recibe;
-    extern t_cntr_ruta *rt;
-    extern t_cntr_error cntr_error;
+    extern t_gtls_ruta *rt;
+    extern t_gtls_error gtls_error;
 
     /* Sólo acepta 1 argumento */
     if (nargs != 1)
@@ -250,59 +250,59 @@ haz_crea_toma(int nargs, awk_value_t *resultado,
         return make_number(rt->toma->servidor, resultado);
     }
 
-    if (cntr_nueva_ruta(nombre_ruta, &rt) == CNTR_ERROR) {
-        cntr_borra_ruta(&rt);
-        fatal(ext_id, cntr_msj_error("%s %s",
+    if (gtls_nueva_ruta(nombre_ruta, &rt) == CNTR_ERROR) {
+        gtls_borra_ruta(&rt);
+        fatal(ext_id, gtls_msj_error("%s %s",
                                      "creatoma:",
-                                     cntr_error.descripción));
+                                     gtls_error.descripción));
     }
 
-    if (cntr_nueva_toma(rt) == NULL)
-        fatal(ext_id, cntr_msj_error("%s %s",
+    if (gtls_nueva_toma(rt) == NULL)
+        fatal(ext_id, gtls_msj_error("%s %s",
                                      "creatoma:",
-                                     cntr_error.descripción));
+                                     gtls_error.descripción));
 
     v_tpm = trae_tope_maximo();
 
     /* Si TMP = 0 leemos datos hasta CNTR_TOPE_MAX_X_DEF */
     if (v_tpm == 0)
-        recibe = &cntr_recibe_linea_toma;
+        recibe = &gtls_recibe_linea_toma;
     else
-        recibe = &cntr_recibe_flujo_toma;
+        recibe = &gtls_recibe_flujo_toma;
 
-    cntr_nueva_pila_toma(&rt->toma, trae_separador_de_registro(), v_tpm);
+    gtls_nueva_pila_toma(&rt->toma, trae_separador_de_registro(), v_tpm);
 
-    if (cntr_error.número < 0)
-        fatal(ext_id, cntr_msj_error("%s %s",
+    if (gtls_error.número < 0)
+        fatal(ext_id, gtls_msj_error("%s %s",
                                      "creatoma:",
-                                     cntr_error.descripción));
+                                     gtls_error.descripción));
 
     if (rt->cliente){
-        if (cntr_nueva_infred_cliente(rt->nodo_remoto, rt->puerto_remoto,
+        if (gtls_nueva_infred_cliente(rt->nodo_remoto, rt->puerto_remoto,
                               rt->toma) == CNTR_ERROR)
-            fatal(ext_id, cntr_msj_error("%s %s",
+            fatal(ext_id, gtls_msj_error("%s %s",
                                          "creatoma:",
-                                         cntr_error.descripción));
+                                         gtls_error.descripción));
 
-        if (cntr_conecta_toma(rt->toma, rt->nodo_remoto) == CNTR_ERROR)
-            fatal(ext_id, cntr_msj_error("%s %s",
+        if (gtls_conecta_toma(rt->toma, rt->nodo_remoto) == CNTR_ERROR)
+            fatal(ext_id, gtls_msj_error("%s %s",
                                          "creatoma:",
-                                         cntr_error.descripción));
+                                         gtls_error.descripción));
     } else {
-        if (cntr_nueva_infred_servidor(rt->nodo_local, rt->puerto_local,
+        if (gtls_nueva_infred_servidor(rt->nodo_local, rt->puerto_local,
                               rt->toma) == CNTR_ERROR)
-            fatal(ext_id, cntr_msj_error("%s %s",
+            fatal(ext_id, gtls_msj_error("%s %s",
                                          "creatoma:",
-                                         cntr_error.descripción));
+                                         gtls_error.descripción));
 
-        if (cntr_pon_a_escuchar_toma(rt->toma) == CNTR_ERROR)
-            fatal(ext_id, cntr_msj_error("%s %s",
+        if (gtls_pon_a_escuchar_toma(rt->toma) == CNTR_ERROR)
+            fatal(ext_id, gtls_msj_error("%s %s",
                                          "creatoma:",
-                                         cntr_error.descripción));
+                                         gtls_error.descripción));
     }
 
-    if (cntr_pon_ruta_en_serie(rt) == NULL) {
-        cntr_borra_ruta(&rt);
+    if (gtls_pon_ruta_en_serie(rt) == NULL) {
+        gtls_borra_ruta(&rt);
         fatal(ext_id, "creatoma: error registrando ruta");
     }
 
@@ -320,7 +320,7 @@ haz_destruye_toma(int nargs, awk_value_t *resultado,
 {
     (void) desusado;
     awk_value_t nombre;
-    extern t_cntr_ruta *rt;
+    extern t_gtls_ruta *rt;
 
     /* Sólo acepta 1 argumento */
     if (nargs != 1)
@@ -332,8 +332,8 @@ haz_destruye_toma(int nargs, awk_value_t *resultado,
     const char *nombre_ruta = (const char *)nombre.str_value.str;
     if (comprueba_actualiza_ruta("matatoma:",
                                  nombre_ruta) == CNTR_HECHO) {
-        cntr_borra_ruta_de_serie(nombre_ruta);
-        cntr_borra_ruta(&rt);
+        gtls_borra_ruta_de_serie(nombre_ruta);
+        gtls_borra_ruta(&rt);
     } else {
         lintwarn(ext_id, "matatoma: la ruta no existe");
         return make_number(-1, resultado);
@@ -353,19 +353,19 @@ haz_acaba_toma_srv(int nargs, awk_value_t *resultado,
 {
     (void) desusado;
     awk_value_t nombre;
-    extern t_cntr_error cntr_error;
-    extern t_cntr_ruta *rt;
+    extern t_gtls_error gtls_error;
+    extern t_gtls_ruta *rt;
 
     /* Sólo acepta 1 argumento */
     if (nargs != 1) {
-        lintwarn(ext_id, cntr_msj_error("%s %s",
+        lintwarn(ext_id, gtls_msj_error("%s %s",
                              "acabasrv:",
                              "nº de argumentos incorrecto"));
         return make_number(-1, resultado);
     }
 
     if (! get_argument(0, AWK_STRING, &nombre)) {
-        lintwarn(ext_id, cntr_msj_error("%s %s",
+        lintwarn(ext_id, gtls_msj_error("%s %s",
                              "acabasrv:",
                              "tipo de argumento incorrecto"));
         return make_number(-1, resultado);
@@ -373,16 +373,16 @@ haz_acaba_toma_srv(int nargs, awk_value_t *resultado,
 
     if (comprueba_actualiza_ruta("acabasrv:",
                                  (const char *)nombre.str_value.str) < 0) {
-        lintwarn(ext_id, cntr_msj_error("%s %s",
+        lintwarn(ext_id, gtls_msj_error("%s %s",
                                      "acabasrv:",
-                                     cntr_error.descripción));
+                                     gtls_error.descripción));
         return make_number(-1, resultado);
     }
 
-    if (cntr_cierra_toma_servidor(rt->toma, 0) == CNTR_ERROR)
-        lintwarn(ext_id, cntr_msj_error("%s %s",
+    if (gtls_cierra_toma_servidor(rt->toma, 0) == CNTR_ERROR)
+        lintwarn(ext_id, gtls_msj_error("%s %s",
                                         "acabasrv:",
-                                        cntr_error.descripción));
+                                        gtls_error.descripción));
 
     return make_number(0, resultado);
 }
@@ -398,19 +398,19 @@ haz_acaba_toma_cli(int nargs, awk_value_t *resultado,
 {
     (void) desusado;
     awk_value_t nombre;
-    extern t_cntr_error cntr_error;
-    extern t_cntr_ruta *rt;
+    extern t_gtls_error gtls_error;
+    extern t_gtls_ruta *rt;
 
     /* Sólo acepta 1 argumento */
     if (nargs != 1) {
-        lintwarn(ext_id, cntr_msj_error("%s %s",
+        lintwarn(ext_id, gtls_msj_error("%s %s",
                              "acabacli:",
                              "nº de argumentos incorrecto"));
         return make_number(-1, resultado);
     }
 
     if (! get_argument(0, AWK_STRING, &nombre)) {
-        lintwarn(ext_id, cntr_msj_error("%s %s",
+        lintwarn(ext_id, gtls_msj_error("%s %s",
                              "acabacli:",
                              "tipo de argumento incorrecto"));
         return make_number(-1, resultado);
@@ -418,16 +418,16 @@ haz_acaba_toma_cli(int nargs, awk_value_t *resultado,
 
     if (comprueba_actualiza_ruta("acabacli:",
                                  (const char *)nombre.str_value.str) < 0) {
-        lintwarn(ext_id, cntr_msj_error("%s %s",
+        lintwarn(ext_id, gtls_msj_error("%s %s",
                                      "acabacli:",
-                                     cntr_error.descripción));
+                                     gtls_error.descripción));
         return make_number(-1, resultado);
     }
 
-    if (cntr_cierra_toma_cliente(rt->toma, 0) == CNTR_ERROR)
-        lintwarn(ext_id, cntr_msj_error("%s %s",
+    if (gtls_cierra_toma_cliente(rt->toma, 0) == CNTR_ERROR)
+        lintwarn(ext_id, gtls_msj_error("%s %s",
                                         "acabacli:",
-                                        cntr_error.descripción));
+                                        gtls_error.descripción));
 
     return make_number(0, resultado);
 }
@@ -443,8 +443,8 @@ haz_trae_primer_cli(int nargs, awk_value_t *resultado,
 {
     (void) desusado;
     awk_value_t valorarg;
-    extern t_cntr_ruta *rt;
-    extern t_cntr_error cntr_error;
+    extern t_gtls_ruta *rt;
+    extern t_gtls_error gtls_error;
 
     /* Sólo acepta 2 argumentos como máximo */
     if (nargs < 1 || nargs > 2)
@@ -460,12 +460,12 @@ haz_trae_primer_cli(int nargs, awk_value_t *resultado,
 
     struct sockaddr_in cliente;
 
-    if (   cntr_trae_primer_cliente_toma(rt->toma,
+    if (   gtls_trae_primer_cliente_toma(rt->toma,
                                          (struct sockaddr*) &cliente)
         == CNTR_ERROR)
-        fatal(ext_id, cntr_msj_error("%s %s",
+        fatal(ext_id, gtls_msj_error("%s %s",
                                      "traepcli:",
-                                     cntr_error.descripción));
+                                     gtls_error.descripción));
 
     /* Anunciar cliente */
     if (nargs == 2) {
@@ -502,8 +502,8 @@ haz_par_clave_y_certificado_tls(int nargs, awk_value_t *resultado,
 {
     (void) desusado;
     awk_value_t valorarg;
-    extern t_cntr_ruta *rt;
-    extern t_cntr_error cntr_error;
+    extern t_gtls_ruta *rt;
+    extern t_gtls_error gtls_error;
 
     /* Sólo acepta 2 argumentos como máximo */
     if (nargs != 3)
@@ -527,13 +527,13 @@ haz_par_clave_y_certificado_tls(int nargs, awk_value_t *resultado,
 
     const char *f_clave_privada = (const char *) valorarg.str_value.str;
 
-    if (   cntr_par_clave_privada_y_certificado_tls(rt->toma->gtls,
+    if (   gtls_par_clave_privada_y_certificado_tls(rt->toma->gtls,
                                                     f_certificado,
                                                     f_clave_privada)
         == CNTR_ERROR)
-            lintwarn(ext_id, cntr_msj_error("%s %s",
+            lintwarn(ext_id, gtls_msj_error("%s %s",
                                     "pcertcla:",
-                                    cntr_error.descripción));
+                                    gtls_error.descripción));
 
     return make_number(0, resultado);
 }
@@ -550,8 +550,8 @@ haz_lista_autoridades_tls(int nargs, awk_value_t *resultado,
 {
     (void) desusado;
     awk_value_t valorarg;
-    extern t_cntr_ruta *rt;
-    extern t_cntr_error cntr_error;
+    extern t_gtls_ruta *rt;
+    extern t_gtls_error gtls_error;
 
     /* Sólo acepta 2 argumentos como máximo */
     if (nargs != 2)
@@ -570,18 +570,18 @@ haz_lista_autoridades_tls(int nargs, awk_value_t *resultado,
 
     const char *f_auto_certificadoras = (const char *) valorarg.str_value.str;
 
-    if (   cntr_fichero_autoridades_certificadoras_tls(rt->toma->gtls,
+    if (   gtls_fichero_autoridades_certificadoras_tls(rt->toma->gtls,
                                                        f_auto_certificadoras)
         == CNTR_ERROR)
-            lintwarn(ext_id, cntr_msj_error("%s %s",
+            lintwarn(ext_id, gtls_msj_error("%s %s",
                                     "lisautor:",
-                                    cntr_error.descripción));
+                                    gtls_error.descripción));
 
     return make_number(0, resultado);
 }
 
 /**
- * Procesador bidireccional que proporciona 'conector' a GAWK
+ * Procesador bidireccional que proporciona 'gawk_tls' a GAWK
  */
 
 /* No hay puntero oculto */
@@ -639,13 +639,13 @@ maneja_error(FILE *pf, void *opaco)
     return 0;
 }
 
-/* conector_recibe_datos --
+/* gawk_tls_recibe_datos --
  *
  * Lee un registro cada vez
  */
 
 static int
-conector_recibe_datos(char **out, awk_input_buf_t *tpent, int *errcode,
+gawk_tls_recibe_datos(char **out, awk_input_buf_t *tpent, int *errcode,
                       char **rt_start, size_t *rt_len,
                       const awk_fieldwidth_info_t **desusado)
 {
@@ -655,55 +655,55 @@ conector_recibe_datos(char **out, awk_input_buf_t *tpent, int *errcode,
     (void) desusado;
     int bulto;
     size_t tpm;
-    extern t_cntr_pila pila;
+    extern t_gtls_pila pila;
     extern size_t v_tpm;
-    extern t_cntr_ruta *rt;
+    extern t_gtls_ruta *rt;
     extern recibe_toma recibe;
-    extern t_cntr_error cntr_error;
+    extern t_gtls_error gtls_error;
 
     /* Lee la variable global TPM cada vez */
     if ((tpm = trae_tope_maximo()) != v_tpm) {
         if (tpm == 0) {
-            recibe = &cntr_recibe_linea_toma;
+            recibe = &gtls_recibe_linea_toma;
             if (rt->toma->pila->lgtreg >= (size_t)rt->toma->pila->tope->ldatos)
                 goto borra_tope;
             else
                 goto recibe_datos;
         } else
-            recibe = &cntr_recibe_flujo_toma;
+            recibe = &gtls_recibe_flujo_toma;
     }
 
     if (tpm  != v_tpm || pila.llena) {
         /* Antes de borrar el tope devolvemos el flujo restante */
         if (pila.llena)
             gawk_free(pila.datos);
-        bulto = cntr_vacía_tope(rt->toma, &pila.datos, tpm, rt_start, rt_len);
+        bulto = gtls_vacía_tope(rt->toma, &pila.datos, tpm, rt_start, rt_len);
 
         if (bulto > 0) {
-            pila.llena = cntr_cierto;
+            pila.llena = gtls_cierto;
             *out = pila.datos;
         } else {
 borra_tope:
-            pila.llena = cntr_falso;
-            cntr_borra_tope(&rt->toma->pila->tope);
-            cntr_nuevo_tope(&rt->toma->pila->tope, tpm);
+            pila.llena = gtls_falso;
+            gtls_borra_tope(&rt->toma->pila->tope);
+            gtls_nuevo_tope(&rt->toma->pila->tope, tpm);
             goto recibe_datos;
         }
     } else {
 recibe_datos:
-        cntr_error.número = 0;
+        gtls_error.número = 0;
         *out = (*recibe)(rt->toma, rt_start, rt_len);
 
-        if (cntr_error.número < 0)
+        if (gtls_error.número < 0)
         {
-            *errcode = cntr_error.número;
+            *errcode = gtls_error.número;
             update_ERRNO_int(*errcode);
-            update_ERRNO_string(cntr_msj_error("%s %s",
-                                               "conector_recibe_datos:",
-                                               cntr_error.descripción));
-            lintwarn(ext_id, cntr_msj_error("%s %s",
-                                            "conector_recibe_datos:",
-                                            cntr_error.descripción));
+            update_ERRNO_string(gtls_msj_error("%s %s",
+                                               "gawk_tls_recibe_datos:",
+                                               gtls_error.descripción));
+            lintwarn(ext_id, gtls_msj_error("%s %s",
+                                            "gawk_tls_recibe_datos:",
+                                            gtls_error.descripción));
             return EOF;
         }
     }
@@ -715,64 +715,64 @@ recibe_datos:
     return rt->toma->pila->lgtreg;
 }
 
-/* conector_envia_datos --
+/* gawk_tls_envia_datos --
  *
  * Envía respuesta a solicitud del cliente
  */
 
 static size_t
-conector_envia_datos(const void *tope, size_t bulto, size_t ndatos, FILE *pf,
+gawk_tls_envia_datos(const void *tope, size_t bulto, size_t ndatos, FILE *pf,
                      void *opaco)
 {
     (void) pf;
     (void) opaco;
-    extern t_cntr_ruta *rt;
-    extern t_cntr_error cntr_error;
+    extern t_gtls_ruta *rt;
+    extern t_gtls_error gtls_error;
 
-    if (cntr_envia_toma(rt->toma, tope, (bulto * ndatos)) == CNTR_ERROR) {
-        lintwarn(ext_id, cntr_msj_error("%s %s",
-                                        "conector_envia_datos:",
-                                        cntr_error.descripción));
+    if (gtls_envia_toma(rt->toma, tope, (bulto * ndatos)) == CNTR_ERROR) {
+        lintwarn(ext_id, gtls_msj_error("%s %s",
+                                        "gawk_tls_envia_datos:",
+                                        gtls_error.descripción));
         return EOF;
     }
 
     return (bulto * ndatos);
 }
 
-/* conector_puede_aceptar_fichero --
+/* gawk_tls_puede_aceptar_fichero --
  *
  * Decide si aceptamos fichero
  */
 
 static awk_bool_t
-conector_puede_aceptar_fichero(const char *nombre)
+gawk_tls_puede_aceptar_fichero(const char *nombre)
 {
-    extern t_cntr_ruta *rt;
+    extern t_gtls_ruta *rt;
 
 /* 1 ¿Es la toma en uso?
    2 ¿Está registrada? ('creatoma') */
     return (   nombre != NULL
             && (   strcmp(nombre, rt->nombre) == 0                    /* 1 */
-                || (rt = cntr_busca_ruta_en_serie(nombre)) != NULL)); /* 2 */
+                || (rt = gtls_busca_ruta_en_serie(nombre)) != NULL)); /* 2 */
 }
 
-/* conector_tomar_control_de --
+/* gawk_tls_tomar_control_de --
  *
  * Prepara procesador bidireccional
  */
 
 static awk_bool_t
-conector_tomar_control_de(const char *nombre, awk_input_buf_t *tpent,
+gawk_tls_tomar_control_de(const char *nombre, awk_input_buf_t *tpent,
                           awk_output_buf_t *tpsal)
 {
     if (tpent == NULL || tpsal == NULL)
         return awk_false;
 
-    extern t_cntr_ruta *rt;
+    extern t_gtls_ruta *rt;
 
     /* Entrada */
     tpent->opaque = NULL;
-    tpent->get_record = conector_recibe_datos;
+    tpent->get_record = gawk_tls_recibe_datos;
     tpent->close_func = cierra_toma_entrada;
 
     /* Salida */
@@ -781,7 +781,7 @@ conector_tomar_control_de(const char *nombre, awk_input_buf_t *tpent,
     tpsal->fp = fdopen(rt->toma->cliente, "w");
     tpsal->redirected = awk_true;
     tpsal->opaque = NULL;
-    tpsal->gawk_fwrite = conector_envia_datos;
+    tpsal->gawk_fwrite = gawk_tls_envia_datos;
     tpsal->gawk_fflush = limpia_toma_salida;
     tpsal->gawk_ferror = maneja_error;
     tpsal->gawk_fclose = cierra_toma_salida;
@@ -789,34 +789,34 @@ conector_tomar_control_de(const char *nombre, awk_input_buf_t *tpent,
     return awk_true;
 }
 
-/* Registra nuevo procesador bidireccional llamado 'conector' */
+/* Registra nuevo procesador bidireccional llamado 'gawk_tls' */
 
-static awk_two_way_processor_t conector_es = {
-    "conector",
-    conector_puede_aceptar_fichero,
-    conector_tomar_control_de,
+static awk_two_way_processor_t gawk_tls_es = {
+    "gawk_tls",
+    gawk_tls_puede_aceptar_fichero,
+    gawk_tls_tomar_control_de,
     NULL
 };
 
-/* inicia_conector --
+/* inicia_gawk_tls --
  *
- * Incicia conector bidireccional
+ * Incicia gawk_tls bidireccional
  */
 
 static awk_bool_t
-inicia_conector()
+inicia_gawk_tls()
 {
-    extern t_cntr_pila pila;
+    extern t_gtls_pila pila;
 
     register_ext_version(ext_version);
-    register_two_way_processor(&conector_es);
+    register_two_way_processor(&gawk_tls_es);
 
-    awk_atexit(&finaliza_conector, NULL);
+    awk_atexit(&finaliza_gawk_tls, NULL);
 
     return awk_true;
 }
 
-/* Define nuevos comantos para GAWK */
+/* Define nuevos comandos para GAWK */
 
 static awk_ext_func_t lista_de_funciones[] = {
     { "creatoma", haz_crea_toma,                   1, 1, awk_false, NULL },
@@ -830,4 +830,4 @@ static awk_ext_func_t lista_de_funciones[] = {
 
 /* Cargar funciones */
 
-dl_load_func(lista_de_funciones, conector, "")
+dl_load_func(lista_de_funciones, gawk_tls, "")

@@ -41,8 +41,8 @@
 #include <string.h>
 #include <gnutls/gnutls.h>
 
-#include "cntr_defcom.h"
-#include "cntr_capa_tls.h"
+#include "gtls_defcom.h"
+#include "gtls_capa_tls.h"
 
 /* privada - __rellama_verifica_certificado
  *
@@ -62,7 +62,7 @@
 //        return GNUTLS_E_CERTIFICATE_ERROR;
 //
 //    /* Es necesario tener instalados uno o más certificados de AC.
-//       Ver cntr_fichero_autoridades_certificadoras_tls() más abajo */
+//       Ver gtls_fichero_autoridades_certificadoras_tls() más abajo */
 //    VERIFICA_ERROR_TLS(resul,
 //        gnutls_certificate_verify_peers3(sesión, nombre_srv, &estado),
 //        "__rellama_verifica_certificado()");//
@@ -90,7 +90,7 @@ __inicia_diálogo_tls(t_capa_gnutls *capatls, int df_cliente)
 
     /* Dialoga TLS e inicializa los parámetros de sesión */
     for (;;) {
-        cntr_limpia_error(resul);
+        gtls_limpia_error(resul);
         BUCLE_VERIFICA_TLS(resul,
             gnutls_handshake(capatls->sesión));
         if (resul == 0) {
@@ -103,8 +103,8 @@ __inicia_diálogo_tls(t_capa_gnutls *capatls, int df_cliente)
                     gnutls_strerror(resul));
         } else if (resul < 0) {
             close(df_cliente);
-            cntr_finaliza_sesion_capa_tls(capatls);
-            cntr_error(resul, cntr_msj_error("%s %s",
+            gtls_finaliza_sesion_capa_tls(capatls);
+            gtls_error(resul, gtls_msj_error("%s %s",
                                  "__inicia_diálogo_tls()",
                                  gnutls_strerror(resul)));
             return CNTR_ERROR;
@@ -122,7 +122,7 @@ static int
 __arranque_global_capa_tls(t_capa_gnutls *capatls)
 {
     int resul;
-    cntr_limpia_error(resul);
+    gtls_limpia_error(resul);
 
     VERIFICA_ERROR_TLS(resul,
         gnutls_global_init(),
@@ -134,7 +134,7 @@ __arranque_global_capa_tls(t_capa_gnutls *capatls)
 
     /* Como mínimo se usan las AC de confianza predeterminadas del sistema con
      * el fin de verificar los certificados de cliente o servidor. Se pueden
-     * añadir más AC usando cntr_fichero_autoridades_certificadoras_tls(), ver
+     * añadir más AC usando gtls_fichero_autoridades_certificadoras_tls(), ver
      * más abajo */
     VERIFICA_ERROR_TLS(resul,
         gnutls_certificate_set_x509_system_trust(capatls->credx509),
@@ -157,7 +157,7 @@ static int
 __inicia_sesion_capa_tls(t_capa_gnutls *capatls, unsigned int perfil)
 {
     int resul;
-    cntr_limpia_error(resul);
+    gtls_limpia_error(resul);
 
     VERIFICA_ERROR_TLS(resul,
         gnutls_init(&(capatls->sesión), perfil),
@@ -178,29 +178,29 @@ __inicia_sesion_capa_tls(t_capa_gnutls *capatls, unsigned int perfil)
     return CNTR_HECHO;
 }
 
-/* cntr_arranque_global_capa_tls_cliente */
+/* gtls_arranque_global_capa_tls_cliente */
 
 int
-cntr_arranque_global_capa_tls_cliente(t_capa_gnutls *capatls)
+gtls_arranque_global_capa_tls_cliente(t_capa_gnutls *capatls)
 {
     __arranque_global_capa_tls(capatls);
 
-    capatls->en_uso = cntr_cierto;
+    capatls->en_uso = gtls_cierto;
 
-    /* Ver función cntr_dialoga_envia_datos_capa_tls() */
-    capatls->sesión_guardada = cntr_falso;
-    capatls->sesión_iniciada = cntr_falso;
+    /* Ver función gtls_dialoga_envia_datos_capa_tls() */
+    capatls->sesión_guardada = gtls_falso;
+    capatls->sesión_iniciada = gtls_falso;
 
     return CNTR_HECHO;
 }
 
-/* cntr_arranque_global_capa_tls_servidor */
+/* gtls_arranque_global_capa_tls_servidor */
 
 int
-cntr_arranque_global_capa_tls_servidor(t_capa_gnutls *capatls)
+gtls_arranque_global_capa_tls_servidor(t_capa_gnutls *capatls)
 {
     int resul;
-    cntr_limpia_error(resul);
+    gtls_limpia_error(resul);
 
     __arranque_global_capa_tls(capatls);
 
@@ -218,15 +218,15 @@ cntr_arranque_global_capa_tls_servidor(t_capa_gnutls *capatls)
     VERIFICA_ERROR_TLS(resul,
         gnutls_certificate_set_known_dh_params(capatls->credx509,
                                                GNUTLS_SEC_PARAM_MEDIUM),
-        "cntr_arranque_global_capa_tls_servidor()");
+        "gtls_arranque_global_capa_tls_servidor()");
 #endif
 
-    capatls->en_uso = cntr_cierto;
+    capatls->en_uso = gtls_cierto;
 
-    /* Ver función cntr_dialoga_envia_datos_capa_tls()
+    /* Ver función gtls_dialoga_envia_datos_capa_tls()
      * Aquí no sirve: el servidor no reanuda sesiones */
-    capatls->sesión_guardada = cntr_falso;
-    capatls->sesión_iniciada = cntr_falso;
+    capatls->sesión_guardada = gtls_falso;
+    capatls->sesión_iniciada = gtls_falso;
 
     return CNTR_HECHO;
 }
@@ -234,56 +234,56 @@ cntr_arranque_global_capa_tls_servidor(t_capa_gnutls *capatls)
 #define __arranque_global_capa_tls call function
 #define __diálogo_renaudable_capa_tls call function
 
-/* cntr_falso_arranque_global_capa_tls */
+/* gtls_falso_arranque_global_capa_tls */
 int
-cntr_falso_arranque_global_capa_tls(t_capa_gnutls *capatls)
+gtls_falso_arranque_global_capa_tls(t_capa_gnutls *capatls)
 {
     (void) capatls;
     return CNTR_HECHO;
 }
 
-/* cntr_parada_global_capa_tls */
+/* gtls_parada_global_capa_tls */
 
 void
-cntr_parada_global_capa_tls(t_capa_gnutls *capatls)
+gtls_parada_global_capa_tls(t_capa_gnutls *capatls)
 {
     if (   capatls == NULL
         || capatls->en_uso) {
         gnutls_certificate_free_credentials(capatls->credx509);
         gnutls_priority_deinit(capatls->prioridad);
         gnutls_global_deinit();
-        capatls->en_uso = cntr_falso;
+        capatls->en_uso = gtls_falso;
     }
 }
 
-/* cntr_parada_global_capa_tls_noprds */
+/* gtls_parada_global_capa_tls_noprds */
 
 void
-cntr_parada_global_capa_tls_noprds(t_capa_gnutls *capatls)
+gtls_parada_global_capa_tls_noprds(t_capa_gnutls *capatls)
 {
     if (   capatls == NULL
         || capatls->en_uso) {
         gnutls_certificate_free_credentials(capatls->credx509);
         gnutls_global_deinit();
-        capatls->en_uso = cntr_falso;
+        capatls->en_uso = gtls_falso;
     }
 }
 
-/* cntr_falsa_parada_global_capa_tls */
+/* gtls_falsa_parada_global_capa_tls */
 
 void
-cntr_falsa_parada_global_capa_tls(t_capa_gnutls *capatls)
+gtls_falsa_parada_global_capa_tls(t_capa_gnutls *capatls)
 {
     (void) capatls;
 }
 
-/* cntr_inicia_sesion_capa_tls_cliente */
+/* gtls_inicia_sesion_capa_tls_cliente */
 
 int
-cntr_inicia_sesion_capa_tls_cliente(t_capa_gnutls *capatls, char *nodo)
+gtls_inicia_sesion_capa_tls_cliente(t_capa_gnutls *capatls, char *nodo)
 {
     int resul;
-    cntr_limpia_error(resul);
+    gtls_limpia_error(resul);
 
     __inicia_sesion_capa_tls(capatls, GNUTLS_CLIENT);
 
@@ -293,17 +293,17 @@ cntr_inicia_sesion_capa_tls_cliente(t_capa_gnutls *capatls, char *nodo)
     VERIFICA_ERROR_TLS(resul,
         gnutls_server_name_set(capatls->sesión, GNUTLS_NAME_DNS,
                                nodo, strlen(nodo)),
-        "cntr_inicia_sesion_capa_tls_cliente()");
+        "gtls_inicia_sesion_capa_tls_cliente()");
 
-    capatls->sesión_iniciada = cntr_cierto;
+    capatls->sesión_iniciada = gtls_cierto;
 
     return CNTR_HECHO;
 }
 
-/* cntr_inicia_sesion_capa_tls_servidor */
+/* gtls_inicia_sesion_capa_tls_servidor */
 
 int
-cntr_inicia_sesion_capa_tls_servidor(t_capa_gnutls *capatls, char *nodo)
+gtls_inicia_sesion_capa_tls_servidor(t_capa_gnutls *capatls, char *nodo)
 {
     (void) nodo;
 
@@ -313,27 +313,27 @@ cntr_inicia_sesion_capa_tls_servidor(t_capa_gnutls *capatls, char *nodo)
     gnutls_certificate_server_set_request(capatls->sesión,
                                           GNUTLS_CERT_IGNORE);
 
-    capatls->sesión_iniciada = cntr_cierto;
+    capatls->sesión_iniciada = gtls_cierto;
 
     return CNTR_HECHO;
 }
 
 #define __inicia_sesion_capa_tls call function
 
-/* cntr_falso_inicio_sesion_capa_tls */
+/* gtls_falso_inicio_sesion_capa_tls */
 
 int
-cntr_falso_inicio_sesion_capa_tls(t_capa_gnutls *capatls, char *nodo)
+gtls_falso_inicio_sesion_capa_tls(t_capa_gnutls *capatls, char *nodo)
 {
     (void) capatls;
     (void) nodo;
     return CNTR_HECHO;
 }
 
-/* cntr_finaliza_sesion_capa_tls */
+/* gtls_finaliza_sesion_capa_tls */
 
 void
-cntr_finaliza_sesion_capa_tls(t_capa_gnutls *capatls)
+gtls_finaliza_sesion_capa_tls(t_capa_gnutls *capatls)
 {
     /* Borra la sesión y los topes que tiene asociados */
     if (   capatls == NULL
@@ -344,25 +344,25 @@ cntr_finaliza_sesion_capa_tls(t_capa_gnutls *capatls)
             gnutls_free(((gnutls_datum_t*)capatls->dd_sesión)->data);
             free(capatls->dd_sesión);
         }
-        capatls->sesión_guardada = cntr_falso;
-        capatls->sesión_iniciada = cntr_falso;
+        capatls->sesión_guardada = gtls_falso;
+        capatls->sesión_iniciada = gtls_falso;
     }
 }
 
-/* cntr_inicia_diálogo_tls_cliente */
+/* gtls_inicia_diálogo_tls_cliente */
 
 int
-cntr_inicia_diálogo_tls_cliente(t_capa_gnutls *capatls, int df_cliente)
+gtls_inicia_diálogo_tls_cliente(t_capa_gnutls *capatls, int df_cliente)
 {
     if (__inicia_diálogo_tls(capatls, df_cliente) < 0)
         return CNTR_ERROR;
     return CNTR_HECHO;
 }
 
-/* cntr_inicia_diálogo_tls_servidor */
+/* gtls_inicia_diálogo_tls_servidor */
 
 int
-cntr_inicia_diálogo_tls_servidor(t_capa_gnutls *capatls, int df_cliente)
+gtls_inicia_diálogo_tls_servidor(t_capa_gnutls *capatls, int df_cliente)
 {
     if (__inicia_diálogo_tls(capatls, df_cliente) < 0)
         return CNTR_ERROR;
@@ -371,20 +371,20 @@ cntr_inicia_diálogo_tls_servidor(t_capa_gnutls *capatls, int df_cliente)
 
 #define __inicia_diálogo_tls call function
 
-/* cntr_falso_inicio_diálogo_tls */
+/* gtls_falso_inicio_diálogo_tls */
 
 int
-cntr_falso_inicio_diálogo_tls(t_capa_gnutls *capatls, int df_cliente)
+gtls_falso_inicio_diálogo_tls(t_capa_gnutls *capatls, int df_cliente)
 {
     (void) capatls;
     (void) df_cliente;
     return CNTR_HECHO;
 }
 
-/* cntr_envia_datos_capa_tls */
+/* gtls_envia_datos_capa_tls */
 
 ssize_t
-cntr_envia_datos_capa_tls(t_capa_gnutls *capatls, int df_cliente,
+gtls_envia_datos_capa_tls(t_capa_gnutls *capatls, int df_cliente,
                           const void *tope, size_t bulto)
 {
     (void) df_cliente;
@@ -395,13 +395,13 @@ cntr_envia_datos_capa_tls(t_capa_gnutls *capatls, int df_cliente,
         return 0;
 
     int resul;
-    cntr_limpia_error(resul);
+    gtls_limpia_error(resul);
 
     BUCLE_VERIFICA_TLS(resul,
         gnutls_record_send(capatls->sesión, tope, bulto));
     if (resul < 0) {
-        cntr_error(resul, cntr_msj_error("%s %s",
-                             "cntr_envia_datos_capa_tls()",
+        gtls_error(resul, gtls_msj_error("%s %s",
+                             "gtls_envia_datos_capa_tls()",
                              gnutls_strerror(resul)));
         return CNTR_ERROR;
     }
@@ -409,17 +409,17 @@ cntr_envia_datos_capa_tls(t_capa_gnutls *capatls, int df_cliente,
     return resul;
 }
 
-/* cntr_recibe_datos_capa_tls */
+/* gtls_recibe_datos_capa_tls */
 
 ssize_t
-cntr_recibe_datos_capa_tls(t_capa_gnutls *capatls, int df_cliente, void *tope,
+gtls_recibe_datos_capa_tls(t_capa_gnutls *capatls, int df_cliente, void *tope,
                            size_t bulto)
 {
     (void) df_cliente;
     int resul;
 
     for (;;) {
-        cntr_limpia_error(resul);
+        gtls_limpia_error(resul);
         BUCLE_VERIFICA_TLS(resul,
             gnutls_record_recv(capatls->sesión, tope, bulto));
         if (resul == 0) {
@@ -428,11 +428,11 @@ cntr_recibe_datos_capa_tls(t_capa_gnutls *capatls, int df_cliente, void *tope,
         } else if (   resul < 0
                    && gnutls_error_is_fatal(resul) == 0) {
             fprintf(stderr, "\n *** Alerta en %s: %s\n",
-                    "cntr_recibe_datos_capa_tls()",
+                    "gtls_recibe_datos_capa_tls()",
                     gnutls_strerror(resul));
         } else if (resul < 0) {
-            cntr_error(resul, cntr_msj_error("%s %s %s %s",
-                                             "cntr_recibe_datos_capa_tls()",
+            gtls_error(resul, gtls_msj_error("%s %s %s %s",
+                                             "gtls_recibe_datos_capa_tls()",
                                              "datos corruptos",
                                              "cerrando conexión",
                                              gnutls_strerror(resul)));
@@ -446,86 +446,86 @@ cntr_recibe_datos_capa_tls(t_capa_gnutls *capatls, int df_cliente, void *tope,
     return resul;
 }
 
-/* cntr_cierra_toma_tls_cliente */
+/* gtls_cierra_toma_tls_cliente */
 
 int
-cntr_cierra_toma_tls_cliente(t_capa_gnutls *capatls, int df_toma)
+gtls_cierra_toma_tls_cliente(t_capa_gnutls *capatls, int df_toma)
 {
     int resul;
     extern int errno;
-    cntr_limpia_error(errno);
+    gtls_limpia_error(errno);
 
     /* No esperar a que el otro lado cierre la conexión */
     BUCLE_VERIFICA_TLS(resul,
         gnutls_bye(capatls->sesión, GNUTLS_SHUT_WR));
     if (resul < 0) {
-        cntr_error(resul, cntr_msj_error("%s %s",
-                                         "cntr_cierra_toma_tls_cliente()",
+        gtls_error(resul, gtls_msj_error("%s %s",
+                                         "gtls_cierra_toma_tls_cliente()",
                                          gnutls_strerror(resul)));
         return CNTR_ERROR;
     }
     if (close(df_toma) < 0) {
-        cntr_error(errno, cntr_msj_error("%s %s",
-                                         "cntr_cierra_toma_tls_cliente()",
+        gtls_error(errno, gtls_msj_error("%s %s",
+                                         "gtls_cierra_toma_tls_cliente()",
                                          strerror(errno)));
         return CNTR_ERROR;
     }
-    cntr_finaliza_sesion_capa_tls(capatls);
+    gtls_finaliza_sesion_capa_tls(capatls);
 
     return CNTR_HECHO;
 }
 
-/* cntr_cierra_toma_tls_servidor */
+/* gtls_cierra_toma_tls_servidor */
 
 int
-cntr_cierra_toma_tls_servidor(t_capa_gnutls *capatls, int df_toma)
+gtls_cierra_toma_tls_servidor(t_capa_gnutls *capatls, int df_toma)
 {
     extern int errno;
-    cntr_limpia_error(errno);
+    gtls_limpia_error(errno);
 
     if (close(df_toma) < 0) {
-        cntr_error(errno, cntr_msj_error("%s %s",
-                                         "cntr_cierra_toma_tls()",
+        gtls_error(errno, gtls_msj_error("%s %s",
+                                         "gtls_cierra_toma_tls()",
                                          strerror(errno)));
         return CNTR_ERROR;
     }
-    cntr_parada_global_capa_tls(capatls);
+    gtls_parada_global_capa_tls(capatls);
 
     return CNTR_HECHO;
 }
 
-/* cntr_falso_cierre_toma_tls */
+/* gtls_falso_cierre_toma_tls */
 
 int
-cntr_falso_cierre_toma_tls(t_capa_gnutls *capatls, int df_toma)
+gtls_falso_cierre_toma_tls(t_capa_gnutls *capatls, int df_toma)
 {
     (void) capatls;
     extern int errno;
-    cntr_limpia_error(errno);
+    gtls_limpia_error(errno);
 
     if (close(df_toma) < 0) {
-        cntr_error(errno, cntr_msj_error("%s %s",
-                                         "cntr_cierra_toma()",
+        gtls_error(errno, gtls_msj_error("%s %s",
+                                         "gtls_cierra_toma()",
                                          strerror(errno)));
         return CNTR_ERROR;
     }
     return CNTR_HECHO;
 }
 
-/* cntr_par_clave_privada_y_certificado_tls */
+/* gtls_par_clave_privada_y_certificado_tls */
 
 int
-cntr_par_clave_privada_y_certificado_tls(t_capa_gnutls *capatls,
+gtls_par_clave_privada_y_certificado_tls(t_capa_gnutls *capatls,
                                          const char *fcertificado,
                                          const char *fclave)
 {
     int resul;
-    cntr_limpia_error(resul);
+    gtls_limpia_error(resul);
 
     if (   capatls == NULL
         || !capatls->en_uso) {
-        cntr_error(resul, cntr_msj_error("%s %s",
-                            "cntr_par_clave_privada_y_certificado_tls()",
+        gtls_error(resul, gtls_msj_error("%s %s",
+                            "gtls_par_clave_privada_y_certificado_tls()",
                             "no se ha iniciado capa TLS"));
         return CNTR_ERROR;
     }
@@ -535,23 +535,23 @@ cntr_par_clave_privada_y_certificado_tls(t_capa_gnutls *capatls,
                                              fcertificado,
                                              fclave,
                                              GNUTLS_X509_FMT_PEM),
-        "cntr_par_clave_privada_y_certificado_tls()");
+        "gtls_par_clave_privada_y_certificado_tls()");
     return CNTR_HECHO;
 }
 
-/* cntr_fichero_autoridades_certificadoras_tls */
+/* gtls_fichero_autoridades_certificadoras_tls */
 
 int
-cntr_fichero_autoridades_certificadoras_tls(t_capa_gnutls *capatls,
+gtls_fichero_autoridades_certificadoras_tls(t_capa_gnutls *capatls,
                                             const char *fautoridades)
 {
     int resul;
-    cntr_limpia_error(resul);
+    gtls_limpia_error(resul);
 
     if (   capatls == NULL
         || !capatls->en_uso) {
-        cntr_error(resul, cntr_msj_error("%s %s",
-                            "cntr_fichero_autoridades_certificadoras_tls()",
+        gtls_error(resul, gtls_msj_error("%s %s",
+                            "gtls_fichero_autoridades_certificadoras_tls()",
                             "no se ha iniciado capa TLS"));
         return CNTR_ERROR;
     }
@@ -560,7 +560,7 @@ cntr_fichero_autoridades_certificadoras_tls(t_capa_gnutls *capatls,
         gnutls_certificate_set_x509_trust_file(capatls->credx509,
                                                fautoridades,
                                                GNUTLS_X509_FMT_PEM),
-        "cntr_fichero_autoridades_certificadoras_tls()");
+        "gtls_fichero_autoridades_certificadoras_tls()");
 
     return CNTR_HECHO;
 }

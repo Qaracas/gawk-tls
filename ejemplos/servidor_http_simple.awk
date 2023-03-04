@@ -32,7 +32,7 @@
 # License along with this software; see the file LICENSE. If
 # not, see <https://www.gnu.org/licenses/>.
 
-@load "conector";
+@load "gawk_tls";
 
 @include "servidor_http_utilidades.awk";
 

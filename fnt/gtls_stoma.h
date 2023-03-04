@@ -32,65 +32,31 @@
  * not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <stdio.h>
+#ifndef STOMA_H
+#define STOMA_H
 
-#ifndef DEFCOM_H
-#define DEFCOM_H
-
-#define CNTR_HECHO      (0)
-#define CNTR_ERROR      (-5)
-#define CNTR_DF_NULO    (-1)
-
-#define cntr_ltd(x) (sizeof(x) / sizeof((x)[0]))
-
-#define cntr_asigmem(puntero, tipo, cabida, mensaje) \
-    do { \
-        if ((puntero = (tipo) malloc(cabida)) == 0) \
-            printf("%s: fallo reservando %d octetos de memoria", \
-                   mensaje, (int)cabida); \
-    } while(0)
-
-#define cntr_limpia_error_simple() \
-    do { \
-        extern t_cntr_error cntr_error; \
-        cntr_error.número = 0; \
-        cntr_error.descripción = NULL; \
-    } while(0)
-
-#define cntr_limpia_error(numerror) \
-    do { \
-        extern t_cntr_error cntr_error; \
-        numerror = 0; \
-        cntr_error.número = 0; \
-        cntr_error.descripción = NULL; \
-    } while(0)
-
-#define cntr_error(numerror, descripción_error) \
-    do { \
-        extern t_cntr_error cntr_error; \
-        cntr_error.número = numerror; \
-        cntr_error.descripción = descripción_error; \
-    } while(0)
-
-#ifndef T_CTRN_VERDAD
-#define T_CTRN_VERDAD
-typedef enum cntr_verdad {
-    cntr_falso  = 0,
-    cntr_cierto = 1
-} t_ctrn_verdad;
-#endif
-
-typedef struct cntr_error {
-    int  número;       /* Número de error       */
-    char *descripción; /* Descripción del error */
-} t_cntr_error;
-
-/* cntr_msj_error --
+/* gtls_nueva_infred_cliente --
  *
- * Forma mensaje de error a partir de un resultado y un texto dado
+ * Crea estructura addrinfo dentro de la rura
  */
 
-char *
-cntr_msj_error(const char *desc, ...);
+int
+gtls_nueva_infred_cliente(char *nodo, char *puerto, t_gtls_toma_es *toma);
 
-#endif /* DEFCOM_H */
+/* gtls_nueva_infred_servidor --
+ *
+ * Crea estructura addrinfo dentro de la rura y la marca adecuadamente
+ * si es un nodo local
+ */
+
+int
+gtls_nueva_infred_servidor(char *nodo, char *puerto, t_gtls_toma_es *toma);
+
+/* gtls_borra_infred --
+ * Libera memoria ocupada por estructura addrinfo
+ */
+
+void
+gtls_borra_infred(t_gtls_toma_es *toma);
+
+#endif /* STOMA_H */

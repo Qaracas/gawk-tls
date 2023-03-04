@@ -32,31 +32,44 @@
  * not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef STOMA_H
-#define STOMA_H
+#include <string.h>
+#include <stdlib.h>
+#include <stdarg.h>
 
-/* cntr_nueva_infred_cliente --
- *
- * Crea estructura addrinfo dentro de la rura
- */
+#include "gtls_defcom.h"
 
-int
-cntr_nueva_infred_cliente(char *nodo, char *puerto, t_cntr_toma_es *toma);
+t_gtls_error gtls_error = {0, NULL};
 
-/* cntr_nueva_infred_servidor --
- *
- * Crea estructura addrinfo dentro de la rura y la marca adecuadamente
- * si es un nodo local
- */
+/* gtls_msj_error */
 
-int
-cntr_nueva_infred_servidor(char *nodo, char *puerto, t_cntr_toma_es *toma);
+char *
+gtls_msj_error(const char *desc, ...)
+{
+    /* Variable para almacenar la lista de argumentos */
+    va_list lista_args;
+    char *ds;
+    char msj_error[128] = "";
 
-/* cntr_borra_infred --
- * Libera memoria ocupada por estructura addrinfo
- */
+    va_start(lista_args, desc);
 
-void
-cntr_borra_infred(t_cntr_toma_es *toma);
+    while (*desc) {
+        switch (*desc++) {
+        case '%':   /* Prefijo texto */
+            if (*desc++ == 's') {
+                ds = va_arg(lista_args, char *);
+                strcat(msj_error, ds);
+            } else
+                return NULL;
+            break;
+        case ' ':   /* Espacio */
+            strcat(msj_error, " ");
+            break;
+        default:
+            return NULL;
+       }
+    }
 
-#endif /* STOMA_H */
+    va_end(lista_args);
+
+    return strdup(msj_error);
+}

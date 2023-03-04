@@ -2,7 +2,7 @@
 
 ## ¿Qué es `gawk-tls`?
 
-`gawk-tls` es una extensión que proporciona algunas funciones a [Gawk](https://www.gnu.org/software/gawk/manual/gawk.html) para establecer interconexiones seguras sobre la capa [TLS](https://es.wikipedia.org/wiki/Seguridad_de_la_capa_de_transporte)
+`gawk-tls` es una extensión de [Gawk](https://www.gnu.org/software/gawk/manual/gawk.html) que permite establecer conexiones TCP/IP entre procesos de diferentes sistemas, sobre la capa de seguridad [TLS](https://es.wikipedia.org/wiki/Seguridad_de_la_capa_de_transporte)
 
 ## Requisitos
 

@@ -40,17 +40,17 @@
 /* Tome máximo para cola de conexiones pendientes */
 #define CNTR_MAX_PENDIENTES 100
 
-typedef enum cntr_verdad t_ctrn_verdad;
+typedef enum gtls_verdad t_ctrn_verdad;
 
 struct sockaddr;
 
 struct addrinfo;
 
-struct cntr_ruta;
-typedef struct cntr_ruta t_cntr_ruta;
+struct gtls_ruta;
+typedef struct gtls_ruta t_gtls_ruta;
 
-struct cntr_tope;
-typedef struct cntr_tope t_cntr_tope;
+struct gtls_tope;
+typedef struct gtls_tope t_gtls_tope;
 
 #if GNU_LINUX
 /* Número máximo de descriptores de fichero listos para la operación de E/S
@@ -60,13 +60,13 @@ typedef struct cntr_tope t_cntr_tope;
 struct epoll_event;
 typedef struct epoll_event t_evento;
 
-typedef struct cntr_sonda {
+typedef struct gtls_sonda {
     t_evento        *evt;     /* Estructura de eventos (Linux epoll API)   */
     t_evento eva[CNTR_MAX_EVENTOS]; /* Df. preparados y que tienen eventos */
     int             ndsf;     /* Nº dscs. de fichero listos (epoll_wait)   */
     int             ctdr      /* Orden en la lista de df listos            */
     int             dfsd;     /* Descriptor sonda de eventos E/S (epoll)   */
-} t_cntr_sonda;
+} t_gtls_sonda;
 #endif
 
 struct capa_gnutls;
@@ -91,20 +91,20 @@ typedef int (*func_diálogo)(t_capa_gnutls *capatls, int df_cliente);
 /* Para cargar los datos que se envían o reciben de la toma */
 
 typedef struct datos_toma {
-    t_cntr_tope *tope;        /* Tope de datos entre la E/S                */
+    t_gtls_tope *tope;        /* Tope de datos entre la E/S                */
     char        *sdrt;        /* Separador de registro. Variable RS gawk   */
     size_t      tsr;          /* Tamaño cadena separador de registro       */
     size_t      lgtreg;       /* Tamaño actual del registro                */
-} t_cntr_dts_toma;
+} t_gtls_dts_toma;
 
-typedef struct cntr_toma_es {
+typedef struct gtls_toma_es {
     t_capa_gnutls   *gtls;
 #if GNU_LINUX
-    t_cntr_sonda    *sonda;   /* Sonda de eventos E/S (epoll API)          */
+    t_gtls_sonda    *sonda;   /* Sonda de eventos E/S (epoll API)          */
 #endif
     int             servidor; /* Descriptor servidor en modo escucha       */
     int             cliente;  /* Descriptor cliente (lectura/escritura)    */
-    t_cntr_dts_toma *pila;    /* Pila de datos entre el programa y la toma */
+    t_gtls_dts_toma *pila;    /* Pila de datos entre el programa y la toma */
     struct addrinfo *infred;  /* Información de red TCP/IP (API Linux)     */
     t_ctrn_verdad   local;    /* ¿Toma local?                              */
     func_inicia     inicia_tls;        /* Iniciar globalmente TLS          */
@@ -115,102 +115,102 @@ typedef struct cntr_toma_es {
     func_para       para_tls;          /* Parar globalmente TLS            */
     func_cierra     cierra_tm_cli_tls; /* Cerrar toma TLS cliente          */
     func_cierra     cierra_tm_srv_tls; /* Cerrar toma TLS servidor         */
-} t_cntr_toma_es;
+} t_gtls_toma_es;
 
-/* cntr_nueva_toma --
+/* gtls_nueva_toma --
  *
  * Crea nueva toma 'nula' de E/S para una ruta
  */
 
-t_cntr_toma_es *
-cntr_nueva_toma(t_cntr_ruta *ruta);
+t_gtls_toma_es *
+gtls_nueva_toma(t_gtls_ruta *ruta);
 
-/* cntr_borra_toma --
+/* gtls_borra_toma --
  *
  * Borra toma de la memoria
  */
 
 void
-cntr_borra_toma(t_cntr_toma_es **toma);
+gtls_borra_toma(t_gtls_toma_es **toma);
 
-/* cntr_nueva_pila_toma --
+/* gtls_nueva_pila_toma --
  *
  * Crea estructura de la pila de datos en la toma
  */
 
-t_cntr_dts_toma *
-cntr_nueva_pila_toma(t_cntr_toma_es **toma, char *sr, size_t tpm);
+t_gtls_dts_toma *
+gtls_nueva_pila_toma(t_gtls_toma_es **toma, char *sr, size_t tpm);
 
-/* cntr_borra_pila_toma --
+/* gtls_borra_pila_toma --
  *
  * Libera memoria de la pila asociada a la toma
  */
 
 void
-cntr_borra_pila_toma(t_cntr_toma_es **toma);
+gtls_borra_pila_toma(t_gtls_toma_es **toma);
 
-/* cntr_envia_toma --
+/* gtls_envia_toma --
  *
  * Envía datos por la toma de conexión
  */
 
 int
-cntr_envia_toma(t_cntr_toma_es *toma, const void *datos, size_t bulto);
+gtls_envia_toma(t_gtls_toma_es *toma, const void *datos, size_t bulto);
 
-/* cntr_recibe_linea_toma --
+/* gtls_recibe_linea_toma --
  *
  * Recibe línea terminada en RS por la toma de conexión
  */
 
 char *
-cntr_recibe_linea_toma(t_cntr_toma_es *toma, char **sdrt, size_t *tsr);
+gtls_recibe_linea_toma(t_gtls_toma_es *toma, char **sdrt, size_t *tsr);
 
-/* cntr_recibe_flujo_toma --
+/* gtls_recibe_flujo_toma --
  *
  * Recibe un flujo contínuo de datos por la toma de conexión
  */
 
 char *
-cntr_recibe_flujo_toma(t_cntr_toma_es *toma, char **sdrt, size_t *tsr);
+gtls_recibe_flujo_toma(t_gtls_toma_es *toma, char **sdrt, size_t *tsr);
 
-/* cntr_conecta_toma --
+/* gtls_conecta_toma --
  *
  * Conecta la toma asociada a una ruta de tipo cliente
  */
 int
-cntr_conecta_toma(t_cntr_toma_es *toma, char *nodo);
+gtls_conecta_toma(t_gtls_toma_es *toma, char *nodo);
 
-/* cntr_pon_a_escuchar_toma --
+/* gtls_pon_a_escuchar_toma --
  *
  * Pone a escuchar la toma asociada a una ruta local (servidor)
  */
 
 int
-cntr_pon_a_escuchar_toma(t_cntr_toma_es *toma);
+gtls_pon_a_escuchar_toma(t_gtls_toma_es *toma);
 
-/* cntr_trae_primer_cliente_toma --
+/* gtls_trae_primer_cliente_toma --
  *
  * Extrae la primera conexión de una toma en modo de escucha
  */
 
 int
-cntr_trae_primer_cliente_toma(t_cntr_toma_es *toma,
+gtls_trae_primer_cliente_toma(t_gtls_toma_es *toma,
                               struct sockaddr *cliente);
 
-/* cntr_cierra_toma_cliente --
+/* gtls_cierra_toma_cliente --
  *
  * Cierra toma de datos del cliente (punto de conexión al cliente)
  */
 
 int
-cntr_cierra_toma_cliente(t_cntr_toma_es *toma, int forzar);
+gtls_cierra_toma_cliente(t_gtls_toma_es *toma, int forzar);
 
-/* cntr_cierra_toma_servidor --
+/* gtls_cierra_toma_servidor --
  *
  * Cierra toma de datos del servidor (punto de conexión al servidor)
  */
 
 int
-cntr_cierra_toma_servidor(t_cntr_toma_es *toma, int forzar);
+gtls_cierra_toma_servidor(t_gtls_toma_es *toma, int forzar);
 
 #endif /* TOMA_H */

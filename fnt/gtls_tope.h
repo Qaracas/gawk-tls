@@ -45,70 +45,70 @@
         valret = cmd; \
     } while(valret == EAGAIN)
 
-typedef struct cntr_tope {
+typedef struct gtls_tope {
     size_t  bulto; /* Volumen o capacidad del tope */
     int    ldatos; /* Cantidad datos almacenados   */
     char   *datos; /* Datos almacenados            */
     int    ptrreg; /* Inicio registro actual       */
-} t_cntr_tope;
+} t_gtls_tope;
 
-/* cntr_nuevo_tope --
+/* gtls_nuevo_tope --
  *
  * Crea nuevo tope de tamaño 'bulto'
  */
 
 int
-cntr_nuevo_tope(t_cntr_tope **tope, size_t bulto);
+gtls_nuevo_tope(t_gtls_tope **tope, size_t bulto);
 
-/* cntr_borra_tope --
+/* gtls_borra_tope --
  *
  * Libera memoria y destruye tope
  */
 
 void
-cntr_borra_tope(t_cntr_tope **tope);
+gtls_borra_tope(t_gtls_tope **tope);
 
-/* cntr_envia_datos --
+/* gtls_envia_datos --
  *
  * Recubrimiento para enviar datos por la toma
  */
 
 ssize_t
-cntr_envia_datos(t_capa_gnutls *capatls, int df_cliente,
+gtls_envia_datos(t_capa_gnutls *capatls, int df_cliente,
                  const void *tope, size_t bulto);
 
-/* cntr_recibe_datos --
+/* gtls_recibe_datos --
  *
  * Recubrimiento para recibir datos por la toma
  */
 
 ssize_t
-cntr_recibe_datos(t_capa_gnutls *capatls, int df_cliente, void *tope,
+gtls_recibe_datos(t_capa_gnutls *capatls, int df_cliente, void *tope,
                   size_t bulto);
 
-/* cntr_rcbl_llena_tope --
+/* gtls_rcbl_llena_tope --
  *
  * Llenar hasta el tope con líneas terminadas en RS
  */
 
 int
-cntr_rcbl_llena_tope(t_cntr_toma_es *toma);
+gtls_rcbl_llena_tope(t_gtls_toma_es *toma);
 
-/* cntr_rcbf_llena_tope --
+/* gtls_rcbf_llena_tope --
  *
  * Llenar hasta el tope con flujo contínuo de datos
  */
 
 int
-cntr_rcbf_llena_tope(t_cntr_toma_es *toma);
+gtls_rcbf_llena_tope(t_gtls_toma_es *toma);
 
-/* cntr_vacía_tope --
+/* gtls_vacía_tope --
  *
  * Vacía tope a cantidades de tamaño TPM (si es menor se vacía completamente)
  */
 
 ssize_t
-cntr_vacía_tope(t_cntr_toma_es *toma, char **sal, size_t tpm,
+gtls_vacía_tope(t_gtls_toma_es *toma, char **sal, size_t tpm,
                 char **sdrt, size_t *tsr);
 
 #endif /* TOPE_H */

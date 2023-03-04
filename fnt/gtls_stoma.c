@@ -41,9 +41,9 @@
 #include <ifaddrs.h>
 #include <netdb.h>
 
-#include "cntr_defcom.h"
-#include "cntr_toma.h"
-#include "cntr_stoma.h"
+#include "gtls_defcom.h"
+#include "gtls_toma.h"
+#include "gtls_stoma.h"
 
 /* privada - __es_dirip --
  *
@@ -69,17 +69,17 @@ __es_dirip(char *ip, struct addrinfo *criterios)
     }
 }
 
-/* cntr_nueva_infred_cliente */
+/* gtls_nueva_infred_cliente */
 
 int
-cntr_nueva_infred_cliente(char *nodo, char *puerto, t_cntr_toma_es *toma)
+gtls_nueva_infred_cliente(char *nodo, char *puerto, t_gtls_toma_es *toma)
 {
     extern int errno;
-    cntr_limpia_error(errno);
+    gtls_limpia_error(errno);
 
     if (nodo == NULL || puerto == NULL || toma == NULL) {
-        cntr_error(CNTR_ERROR, cntr_msj_error("%s %s",
-                             "cntr_nueva_infred_servidor()",
+        gtls_error(CNTR_ERROR, gtls_msj_error("%s %s",
+                             "gtls_nueva_infred_servidor()",
                              "alguna información de red nula"));
         return CNTR_ERROR;
     }
@@ -96,25 +96,25 @@ cntr_nueva_infred_cliente(char *nodo, char *puerto, t_cntr_toma_es *toma)
      /* Evitar a 'getaddrinfo' resolver nombre */
     __es_dirip(nodo, &criterios);
     if ((r = getaddrinfo(nodo, puerto, &criterios, &toma->infred)) != 0) {
-        cntr_error(CNTR_ERROR, cntr_msj_error("%s %s",
-                             "cntr_nueva_infred_servidor()",
+        gtls_error(CNTR_ERROR, gtls_msj_error("%s %s",
+                             "gtls_nueva_infred_servidor()",
                              gai_strerror(r)));
         return CNTR_ERROR;
     }
     return CNTR_HECHO;
 }
 
-/* cntr_nueva_infred_servidor */
+/* gtls_nueva_infred_servidor */
 
 int
-cntr_nueva_infred_servidor(char *nodo, char *puerto, t_cntr_toma_es *toma)
+gtls_nueva_infred_servidor(char *nodo, char *puerto, t_gtls_toma_es *toma)
 {
     extern int errno;
-    cntr_limpia_error(errno);
+    gtls_limpia_error(errno);
 
     if (nodo == NULL || puerto == NULL || toma == NULL) {
-        cntr_error(CNTR_ERROR, cntr_msj_error("%s %s",
-                             "cntr_nueva_infred_servidor()",
+        gtls_error(CNTR_ERROR, gtls_msj_error("%s %s",
+                             "gtls_nueva_infred_servidor()",
                              "alguna información de red nula"));
         return CNTR_ERROR;
     }
@@ -122,7 +122,7 @@ cntr_nueva_infred_servidor(char *nodo, char *puerto, t_cntr_toma_es *toma)
     int r;
     struct addrinfo criterios;
 
-    toma->local = cntr_falso;
+    toma->local = gtls_falso;
 
     /* Criterios para seleccionar las estructuras de tomas IP
      * que 'getaddrinfo()' volcará a la lista 'resultados' */
@@ -133,20 +133,20 @@ cntr_nueva_infred_servidor(char *nodo, char *puerto, t_cntr_toma_es *toma)
     if (strcmp(nodo, "0") == 0) {
         criterios.ai_flags = AI_PASSIVE; /* Dirección IP comodín */
         if ((r = getaddrinfo(NULL, puerto, &criterios, &toma->infred)) != 0) {
-            cntr_error(CNTR_ERROR, cntr_msj_error("%s %s",
-                                 "cntr_nueva_infred_servidor()",
+            gtls_error(CNTR_ERROR, gtls_msj_error("%s %s",
+                                 "gtls_nueva_infred_servidor()",
                                  gai_strerror(r)));
             return CNTR_ERROR;
         }
-        toma->local = cntr_cierto;
+        toma->local = gtls_cierto;
         return CNTR_HECHO;
     }
 
      /* Evitar a 'getaddrinfo' resolver nombre */
     __es_dirip(nodo, &criterios);
     if ((r = getaddrinfo(nodo, puerto, &criterios, &toma->infred)) != 0) {
-        cntr_error(CNTR_ERROR, cntr_msj_error("%s %s",
-                             "cntr_nueva_infred_servidor()",
+        gtls_error(CNTR_ERROR, gtls_msj_error("%s %s",
+                             "gtls_nueva_infred_servidor()",
                              gai_strerror(r)));
         return CNTR_ERROR;
     }
@@ -156,8 +156,8 @@ cntr_nueva_infred_servidor(char *nodo, char *puerto, t_cntr_toma_es *toma)
     struct addrinfo *j;
 
     if (getifaddrs(&stomas_locales) < 0) {
-        cntr_error(errno, cntr_msj_error("%s %s",
-                             "cntr_nueva_infred_servidor()",
+        gtls_error(errno, gtls_msj_error("%s %s",
+                             "gtls_nueva_infred_servidor()",
                              strerror(errno)));
         return CNTR_ERROR;
     }
@@ -191,7 +191,7 @@ cntr_nueva_infred_servidor(char *nodo, char *puerto, t_cntr_toma_es *toma)
                 if (   ntohl(((struct in_addr*)local)->s_addr)
                     == ntohl(((struct in_addr*)resul)->s_addr))
                 {
-                    toma->local = cntr_cierto;
+                    toma->local = gtls_cierto;
                     goto fin;
                 }
             } else {
@@ -200,7 +200,7 @@ cntr_nueva_infred_servidor(char *nodo, char *puerto, t_cntr_toma_es *toma)
                          ((struct in6_addr*)resul)->s6_addr,
                          sizeof(((struct in6_addr*)resul)->s6_addr))) == 0)
                 {
-                    toma->local = cntr_cierto;
+                    toma->local = gtls_cierto;
                     goto fin;
                 }
             }
@@ -215,10 +215,10 @@ fin:
 
 #define __es_dirip call function
 
-/* cntr_borra_infred */
+/* gtls_borra_infred */
 
 void
-cntr_borra_infred(t_cntr_toma_es *toma)
+gtls_borra_infred(t_gtls_toma_es *toma)
 {
     freeaddrinfo(toma->infred);
     toma->infred = NULL;
