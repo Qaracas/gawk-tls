@@ -171,13 +171,13 @@ void
 gtls_borra_toma(t_gtls_toma_es **toma)
 {
     if (*toma != NULL) {
-        gtls_borra_pila_toma(toma);
         /* Se detiene globalmente capa TLS si aplica */
         (*(*toma)->para_tls)((*toma)->gtls);
         if ((*toma)->gtls != NULL) {
             free((*toma)->gtls);
             (*toma)->gtls = NULL;
         }
+        gtls_borra_pila_toma(toma);
 #if GNU_LINUX
         if ((*toma)->sonda != NULL) {
             free((*toma)->sonda);
