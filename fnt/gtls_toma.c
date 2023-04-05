@@ -368,7 +368,8 @@ gtls_conecta_toma(t_gtls_toma_es *toma, char *nodo)
     }
 
     /* Inicia diálogo TLS si procede */
-    (*toma->ini_diálogo_tls)(toma->gtls, toma->cliente);
+    if ((*toma->ini_diálogo_tls)(toma->gtls, toma->cliente) < 0)
+        return CNTR_ERROR;
 
     return CNTR_HECHO;
 }
@@ -518,7 +519,8 @@ sal_y_usa_el_df:
     __cambia_no_bloqueante(toma->cliente);
 
     /* Inicia diálogo TLS si procede */
-    (*toma->ini_diálogo_tls)(toma->gtls, toma->cliente);
+    if ((*toma->ini_diálogo_tls)(toma->gtls, toma->cliente) < 0)
+        return CNTR_ERROR;
 
     return CNTR_HECHO;
 }
@@ -591,7 +593,8 @@ sondea_salida:
     __cambia_no_bloqueante(toma->cliente);
 
     /* Inicia diálogo TLS si procede */
-    (*toma->ini_diálogo_tls)(toma->gtls, toma->cliente);
+    if ((*toma->ini_diálogo_tls)(toma->gtls, toma->cliente) < 0)
+        return  CNTR_ERROR;
 
     return CNTR_HECHO;
 }
