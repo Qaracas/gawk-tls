@@ -52,7 +52,7 @@ BEGIN {
     respuesta[0] = "¡Hola soy un mini servidor!";
 
     while (1) {
-        print traepcli(canalTcpIP);
+        traepcli(canalTcpIP);
 
         # Procesar petición
         error = 0;
