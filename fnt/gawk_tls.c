@@ -442,9 +442,12 @@ haz_trae_primer_cli(int nargs, awk_value_t *resultado,
                     struct awk_ext_func *desusado)
 {
     (void) desusado;
+    int _error;
     awk_value_t valorarg;
     extern t_gtls_ruta *rt;
     extern t_gtls_error gtls_error;
+
+    _error = 0;
 
     /* Sólo acepta 2 argumentos como máximo */
     if (nargs < 1 || nargs > 2)
@@ -462,10 +465,16 @@ haz_trae_primer_cli(int nargs, awk_value_t *resultado,
 
     if (   gtls_trae_primer_cliente_toma(rt->toma,
                                          (struct sockaddr*) &cliente)
-        == CNTR_ERROR)
-        fatal(ext_id, gtls_msj_error("%s %s",
-                                     "traepcli:",
-                                     gtls_error.descripción));
+        == CNTR_ERROR) {
+        update_ERRNO_int(gtls_error.número);
+        update_ERRNO_string(gtls_msj_error("%s %s",
+                                           "traepcli",
+                                           gtls_error.descripción));
+        lintwarn(ext_id, gtls_msj_error("%s %s",
+                                        "traepcli:",
+                                        gtls_error.descripción));
+        _error = 1;
+    }
 
     /* Anunciar cliente */
     if (nargs == 2) {
@@ -485,6 +494,9 @@ llena_coleccion:
             }
         }
     }
+
+    if (_error)
+        return make_number(-1, resultado);
 
     /* Devuelve accept(), es decir, el descriptor de fichero de la
        toma de datos recién creada para comunicar con el cliente. */
