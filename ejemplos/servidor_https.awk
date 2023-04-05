@@ -34,7 +34,7 @@
 
 @load "gawk_tls";
 
-@include "servidor_http_utilidades.awk";
+@include "utilidades.awk";
 
 BEGIN {
     # HTTP/1.1 define la secuencia <retorno de carro> \r <salto de línea> \n
@@ -46,19 +46,25 @@ BEGIN {
     # cero leeremos una cantidad TPM de 'bytes' cada vez.
     TPM = 0;
 
-    canalTcpIP = "/ired/tcp/" ARGV[1] "/" ARGV[2] "/0/0";
-    creatoma(canalTcpIP);
+    canalTLS = "/ired/tls/" ARGV[1] "/" ARGV[2] "/0/0";
+    creatoma(canalTLS);
+
+    pcertcla(canalTLS, "certificados/certificado_servidor.pem",
+                       "certificados/clave_privada_servidor.pem");
+    lisautor(canalTLS, "certificados/certificado_ac.pem");
 
     respuesta[0] = "¡Hola soy un mini servidor!";
 
     while (1) {
-        traepcli(canalTcpIP);
+        traepcli(canalTLS, cli);
+        print "[" PROCINFO["pid"] "]",
+            "Petición recibida desde " cli["dir"] ":" cli["pto"];
 
         # Procesar petición
         error = 0;
-        while (resul = (canalTcpIP |& getline)) {
+        while (resul = (canalTLS |& getline)) {
             if ($1 == "GET" && $2 != "/hola")
-                error = 1
+                error = 1;
             if (length($0) == 0)
                 break;
         }
@@ -70,23 +76,23 @@ BEGIN {
 
         # Mandar respuesta
         if (error) {
-            print "HTTP/1.1 404"      |& canalTcpIP;
-            print "Connection: close" |& canalTcpIP;
+            print "HTTP/1.1 404"      |& canalTLS;
+            print "Connection: close" |& canalTLS;
         } else {
-            print "HTTP/1.1 200"                           |& canalTcpIP;
-            print "Content-Type: text/plain;charset=UTF-8" |& canalTcpIP;
-            print "Content-Length: " cnt_bytes(respuesta)  |& canalTcpIP;
-            print ""                                       |& canalTcpIP;
+            print "HTTP/1.1 200"                           |& canalTLS;
+            print "Content-Type: text/plain;charset=UTF-8" |& canalTLS;
+            print "Content-Length: " cnt_bytes(respuesta)  |& canalTLS;
+            print ""                                       |& canalTLS;
             ORS = "";
-            print respuesta[0]                             |& canalTcpIP;
+            print respuesta[0]                             |& canalTLS;
             ORS = "\r\n";
         }
 
-        acabacli(canalTcpIP);
+        acabacli(canalTLS);
     }
 
-    acabasrv(canalTcpIP);
-    dtrytoma(canalTcpIP);
+    acabasrv(canalTLS);
+    dtrytoma(canalTLS);
 
     exit 0;
 }

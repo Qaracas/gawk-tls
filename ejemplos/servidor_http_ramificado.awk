@@ -35,6 +35,8 @@
 @load "gawk_tls";
 @load "fork";
 
+@include "utilidades.awk";
+
 BEGIN {
     # HTTP/1.1 define la secuencia <retorno de carro> \r <salto de línea> \n
     # como delimitador para todos los elementos, excepto en el cuerpo del
@@ -47,6 +49,8 @@ BEGIN {
 
     canalTcpIP = "/ired/tcp/" ARGV[1] "/" ARGV[2] "/0/0";
     creatoma(canalTcpIP);
+
+    respuesta[0] = "¡Hola soy un mini servidor!";
 
     while (1) {
         traepcli(canalTcpIP, cli);
@@ -63,13 +67,14 @@ BEGIN {
         acabacli(canalTcpIP);
     }
 
-    # Procesar petición
-    respuesta[0] = "¡Hola soy un mini servidor!"
-
     print "[" PROCINFO["pid"] "]",
         "Petición recibida desde " cli["dir"] ":" cli["pto"];
+
+    # Procesar petición
+    error = 0;
     while (resul = (canalTcpIP |& getline)) {
-        print "<", $0;
+        if ($1 == "GET" && $2 != "/hola")
+            error = 1
         if (length($0) == 0)
             break;
     }
@@ -80,8 +85,18 @@ BEGIN {
     }
 
     # Mandar respuesta
-    print "HTTP/1.1 200 Vale" |& canalTcpIP;
-    print "Connection: close" |& canalTcpIP;
+    if (error) {
+        print "HTTP/1.1 404"      |& canalTcpIP;
+        print "Connection: close" |& canalTcpIP;
+    } else {
+        print "HTTP/1.1 200"                           |& canalTcpIP;
+        print "Content-Type: text/plain;charset=UTF-8" |& canalTcpIP;
+        print "Content-Length: " cnt_bytes(respuesta)  |& canalTcpIP;
+        print ""                                       |& canalTcpIP;
+        ORS = "";
+        print respuesta[0]                             |& canalTcpIP;
+        ORS = "\r\n";
+    }
 
     acabacli(canalTcpIP);
     dtrytoma(canalTcpIP);

@@ -55,16 +55,15 @@ BEGIN {
 
     # Cabecera de la petición HTTP
 
-    print "GET " ARGV[2] " HTTP/1.1"  |& ServicioHttp;
-    print "Host: " ServidorHttp                |& ServicioHttp;
-    print                                      |& ServicioHttp;
+    print "GET " ARGV[2] " HTTP/1.1" |& ServicioHttp;
+    print "Host: " ServidorHttp      |& ServicioHttp;
+    print                            |& ServicioHttp;
 
     # Cabecera de la respuesta HTTP
 
     lgtd = 0;
     metd = "";
     while (resul = (ServicioHttp |& getline)) {
-#        print $0;
         if (tolower($1) == "content-length:")
             lgtd = $2;
         if (tolower($1) == "transfer-encoding:")
@@ -124,9 +123,7 @@ function lee_bulto(canalxxxIP, bulto,      ors, cnt, tpm) {
 
     ORS = "";
 
-    TPM = 2;
-    (canalxxxIP |& getline)
-    TPM = bulto;
+    TPM = 2; (canalxxxIP |& getline); TPM = bulto;
 
     cnt = 0;
     while (ServicioHttp |& getline) {
