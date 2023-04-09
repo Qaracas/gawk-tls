@@ -468,7 +468,7 @@ haz_trae_primer_cli(int nargs, awk_value_t *resultado,
         == CNTR_ERROR) {
         update_ERRNO_int(gtls_error.número);
         update_ERRNO_string(gtls_msj_error("%s %s",
-                                           "traepcli",
+                                           "traepcli:",
                                            gtls_error.descripción));
         lintwarn(ext_id, gtls_msj_error("%s %s",
                                         "traepcli:",
