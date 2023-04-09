@@ -56,9 +56,13 @@ BEGIN {
     respuesta[0] = "¡Hola soy un mini servidor!";
 
     while (1) {
-        while (traepcli(canalTLS, cli) < 0) {
-            print "[" PROCINFO["pid"] "]",
-                "Petición recibida desde " cli["dir"] ":" cli["pto"];
+        # Esperar petición de cliente
+        while (resul = traepcli(canalTLS, cli)) {
+            print "Petición recibida desde " cli["dir"] ":" cli["pto"];
+            if (resul > 0)
+                break;
+            else
+                print ERRNO;
         }
 
         # Procesar petición
@@ -72,7 +76,7 @@ BEGIN {
 
         if (resul < 0) {
             print ERRNO;
-            break;
+            continue;
         }
 
         # Mandar respuesta
