@@ -35,8 +35,6 @@
 #ifndef TOMA_H
 #define TOMA_H
 
-#define GNU_LINUX 0
-
 /* Tome máximo para cola de conexiones pendientes */
 #define CNTR_MAX_PENDIENTES 100
 
@@ -61,11 +59,11 @@ struct epoll_event;
 typedef struct epoll_event t_evento;
 
 typedef struct gtls_sonda {
-    t_evento        *evt;     /* Estructura de eventos (Linux epoll API)   */
-    t_evento eva[CNTR_MAX_EVENTOS]; /* Df. preparados y que tienen eventos */
-    int             ndsf;     /* Nº dscs. de fichero listos (epoll_wait)   */
-    int             ctdr      /* Orden en la lista de df listos            */
-    int             dfsd;     /* Descriptor sonda de eventos E/S (epoll)   */
+    t_evento        *evt;     /* Estructura de eventos (Linux epoll API)  */
+    t_evento *eva[CNTR_MAX_EVENTOS]; /* Df. preparados que tienen eventos */
+    int             ndsf;     /* Nº dscs. de fichero listos (epoll_wait)  */
+    int             ctdr;     /* Orden en la lista de df listos           */
+    int             dfsd;     /* Descriptor sonda de eventos E/S (epoll)  */
 } t_gtls_sonda;
 #endif
 

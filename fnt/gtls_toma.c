@@ -439,9 +439,9 @@ gtls_pon_a_escuchar_toma(t_gtls_toma_es *toma)
 
     /* Incluir toma de escucha en la lista de interés */
     toma->sonda->evt->events = EPOLLIN;
-    toma->sonda->evt->data->fd = toma->servidor;
+    toma->sonda->evt->data.fd = toma->servidor;
     if (epoll_ctl(toma->sonda->dfsd, EPOLL_CTL_ADD, toma->servidor,
-        &(toma->sonda->evt)) == -1) {
+        toma->sonda->evt) == -1) {
         gtls_error(errno, gtls_msj_error("%s %s",
                              "gtls_pon_a_escuchar_toma()",
                              strerror(errno)));
@@ -474,7 +474,7 @@ gtls_trae_primer_cliente_toma(t_gtls_toma_es *toma, struct sockaddr *cliente)
     }
     while(1) {
         /* Espera eventos en la instancia epoll refenciada en la sonda */
-        toma->sonda->ndsf = epoll_wait(toma->sonda->dfsd, toma->sonda->eva,
+        toma->sonda->ndsf = epoll_wait(toma->sonda->dfsd, *toma->sonda->eva,
                                        CNTR_MAX_EVENTOS, -1);
         if (toma->sonda->ndsf == -1) {
             gtls_error(errno, gtls_msj_error("%s %s",
@@ -485,8 +485,8 @@ gtls_trae_primer_cliente_toma(t_gtls_toma_es *toma, struct sockaddr *cliente)
         for (toma->sonda->ctdr = 0; toma->sonda->ctdr < toma->sonda->ndsf;
              ++(toma->sonda->ctdr)) {
 atiende_resto_eventos:
-            if (   toma->sonda->eva[toma->sonda->ctdr].data.fd
-                == toma->sonda->servidor) {
+            if (   toma->sonda->eva[toma->sonda->ctdr]->data.fd
+                == toma->servidor) {
                 /* Extraer primera conexión de la cola de conexiones */
                 toma->cliente = accept(toma->servidor, cliente, &lnt);
                 /* ¿Es cliente? */
@@ -497,18 +497,19 @@ atiende_resto_eventos:
                     return CNTR_ERROR;
                 }
                 /* Sí, es cliente */
-                setnonblocking(toma->cliente);
+                /* Pon la toma en estado no bloqueante */
+                __cambia_no_bloqueante(toma->cliente);
                 toma->sonda->evt->events = EPOLLIN | EPOLLOUT | EPOLLET;
-                toma->sonda->evt->data->fd = toma->cliente;
+                toma->sonda->evt->data.fd = toma->cliente;
                 if (epoll_ctl(toma->sonda->dfsd, EPOLL_CTL_ADD, toma->cliente,
-                              &(toma->sonda->evt)) == -1) {
+                              toma->sonda->evt) == -1) {
                     gtls_error(errno, gtls_msj_error("%s %s",
                                          "gtls_trae_primer_cliente_toma()",
                                          strerror(errno)));
                     return CNTR_ERROR;
                 }
             } else {
-                toma->cliente = toma->sonda->eva[toma->sonda->ctdr].data.fd;
+                toma->cliente = toma->sonda->eva[toma->sonda->ctdr]->data.fd;
                 goto sal_y_usa_el_df;
             }
         }

@@ -1,5 +1,6 @@
 INC = /usr/include
-COP = -fPIC -shared -DHAVE_CONFIG_H -c -O -g
+#COP = -fPIC -shared -DGNU_LINUX -c -O -g
+COP = -fPIC -shared -c -O -g
 CIN = -I$(INC)
 CC  = gcc -Wall -Wextra -Werror -pedantic
 DLB = ../lib
