@@ -142,6 +142,11 @@ gtls_nueva_toma(t_gtls_ruta *ruta)
 #if GNU_LINUX
     gtls_asigmem(ruta->toma->sonda, t_gtls_sonda *,
                  sizeof(t_gtls_sonda), "gtls_nueva_toma");
+    gtls_asigmem(ruta->toma->sonda->evt, struct epoll_event *,
+                 sizeof(struct epoll_event), "gtls_nueva_toma");
+    gtls_asigmem(ruta->toma->sonda->eva, struct epoll_event *,
+                 sizeof(struct epoll_event) * CNTR_MAX_EVENTOS,
+                 "gtls_nueva_toma");
 #endif
     ruta->toma->servidor = CNTR_DF_NULO;
     ruta->toma->cliente = CNTR_DF_NULO;
@@ -180,6 +185,10 @@ gtls_borra_toma(t_gtls_toma_es **toma)
         gtls_borra_pila_toma(toma);
 #if GNU_LINUX
         if ((*toma)->sonda != NULL) {
+            free((*toma)->sonda->eva);
+            (*toma)->sonda->eva = NULL;
+            free((*toma)->sonda->evt);
+            (*toma)->sonda->evt = NULL;
             free((*toma)->sonda);
             (*toma)->sonda = NULL;
         }
@@ -428,7 +437,7 @@ gtls_pon_a_escuchar_toma(t_gtls_toma_es *toma)
     }
 
 #if GNU_LINUX
-    /* Sonda: df que hace referencia a la nueva instancia de epoll */
+    /* Crear sonda (df. referido a una nueva instancia 'epoll') */
     toma->sonda->dfsd = epoll_create1(0);
     if (toma->sonda->dfsd == -1) {
         gtls_error(errno, gtls_msj_error("%s %s",
@@ -437,7 +446,7 @@ gtls_pon_a_escuchar_toma(t_gtls_toma_es *toma)
         return CNTR_ERROR;
     }
 
-    /* Incluir toma de escucha en la lista de interés */
+    /* Incluir toma de escucha en la lista de interés de la sonda */
     toma->sonda->evt->events = EPOLLIN;
     toma->sonda->evt->data.fd = toma->servidor;
     if (epoll_ctl(toma->sonda->dfsd, EPOLL_CTL_ADD, toma->servidor,
@@ -468,13 +477,9 @@ gtls_trae_primer_cliente_toma(t_gtls_toma_es *toma, struct sockaddr *cliente)
 
     socklen_t lnt = (socklen_t) sizeof(*cliente);
 
-    if (toma->sonda->ctdr < toma->sonda->ndsf) {
-        toma->sonda->ctdr++;
-        goto atiende_resto_eventos;
-    }
     while(1) {
-        /* Espera eventos en la instancia epoll refenciada en la sonda */
-        toma->sonda->ndsf = epoll_wait(toma->sonda->dfsd, *toma->sonda->eva,
+        /* Espera por eventos de E/S en algún df. de la lista de interés */
+        toma->sonda->ndsf = epoll_wait(toma->sonda->dfsd, toma->sonda->eva,
                                        CNTR_MAX_EVENTOS, -1);
         if (toma->sonda->ndsf == -1) {
             gtls_error(errno, gtls_msj_error("%s %s",
@@ -482,11 +487,8 @@ gtls_trae_primer_cliente_toma(t_gtls_toma_es *toma, struct sockaddr *cliente)
                                  strerror(errno)));
             return CNTR_ERROR;
         }
-        for (toma->sonda->ctdr = 0; toma->sonda->ctdr < toma->sonda->ndsf;
-             ++(toma->sonda->ctdr)) {
-atiende_resto_eventos:
-            if (   toma->sonda->eva[toma->sonda->ctdr]->data.fd
-                == toma->servidor) {
+        for (int i = 0; i < toma->sonda->ndsf; i++) {
+            if (toma->sonda->eva[i].data.fd == toma->servidor) {
                 /* Extraer primera conexión de la cola de conexiones */
                 toma->cliente = accept(toma->servidor, cliente, &lnt);
                 /* ¿Es cliente? */
@@ -499,7 +501,7 @@ atiende_resto_eventos:
                 /* Sí, es cliente */
                 /* Pon la toma en estado no bloqueante */
                 __cambia_no_bloqueante(toma->cliente);
-                toma->sonda->evt->events = EPOLLIN | EPOLLOUT | EPOLLET;
+                toma->sonda->evt->events = EPOLLIN | EPOLLET;
                 toma->sonda->evt->data.fd = toma->cliente;
                 if (epoll_ctl(toma->sonda->dfsd, EPOLL_CTL_ADD, toma->cliente,
                               toma->sonda->evt) == -1) {
@@ -509,15 +511,17 @@ atiende_resto_eventos:
                     return CNTR_ERROR;
                 }
             } else {
-                toma->cliente = toma->sonda->eva[toma->sonda->ctdr]->data.fd;
+                toma->cliente = toma->sonda->eva[i].data.fd;
                 goto sal_y_usa_el_df;
             }
         }
     }
 sal_y_usa_el_df:
 
-    /* Pon la toma en estado no bloqueante */
-    __cambia_no_bloqueante(toma->cliente);
+    /* Inicia sesión TLS si aplica */
+    if ((*toma->ini_sesión_tls)(toma->gtls, NULL) != CNTR_HECHO) {
+        return CNTR_ERROR;
+    }
 
     /* Inicia diálogo TLS si procede */
     if ((*toma->ini_diálogo_tls)(toma->gtls, toma->cliente) < 0)
@@ -562,10 +566,6 @@ gtls_trae_primer_cliente_toma(t_gtls_toma_es *toma, struct sockaddr *cliente)
         }
         /* Atender tomas con eventos de entrada pendientes */
         if (FD_ISSET(toma->servidor, &lst_df_sondear_lect)) {
-            /* Inicia sesión TLS si aplica */
-            if ((*toma->ini_sesión_tls)(toma->gtls, NULL) != CNTR_HECHO) {
-                return CNTR_ERROR;
-            }
             /* Extraer primera conexión de la cola de conexiones */
             toma->cliente = accept(toma->servidor, cliente, &lnt);
             /* ¿Es cliente? */
@@ -592,6 +592,11 @@ sondea_salida:
 
     /* Pon la toma en estado no bloqueante */
     __cambia_no_bloqueante(toma->cliente);
+
+    /* Inicia sesión TLS si aplica */
+    if ((*toma->ini_sesión_tls)(toma->gtls, NULL) != CNTR_HECHO) {
+        return CNTR_ERROR;
+    }
 
     /* Inicia diálogo TLS si procede */
     if ((*toma->ini_diálogo_tls)(toma->gtls, toma->cliente) < 0)

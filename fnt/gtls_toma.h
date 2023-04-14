@@ -59,10 +59,10 @@ struct epoll_event;
 typedef struct epoll_event t_gtls_evt;
 
 typedef struct gtls_sonda {
-    t_gtls_evt      *evt; /* Lista de dsfs. de interés de la sonda 'epoll'   */
-    t_gtls_evt      *eva; /* Dsfs. en la lista de interés que tienen eventos */
-    int             ndsf; /* Nº dscs. de fichero listos (epoll_wait)         */
-    int             dfsd; /* Df. de la sonda de eventos (instancia 'epoll')  */
+    t_gtls_evt *evt; /* Lista de dsfs. de interés de la sonda 'epoll'        */
+    t_gtls_evt *eva; /* Dsfs. en la lista de interés con eventos de E/S      */
+    int        ndsf; /* Nº dscs. de fichero con eventeos de E/S (epoll_wait) */
+    int        dfsd; /* Df. de la sonda de eventos (instancia 'epoll')       */
 } t_gtls_sonda;
 #endif
 
