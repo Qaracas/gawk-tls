@@ -38,7 +38,7 @@
 /* Tome máximo para cola de conexiones pendientes */
 #define CNTR_MAX_PENDIENTES 100
 
-typedef enum gtls_verdad t_ctrn_verdad;
+typedef enum gtls_verdad t_gtls_verdad;
 
 struct sockaddr;
 
@@ -56,14 +56,13 @@ typedef struct gtls_tope t_gtls_tope;
 #define CNTR_MAX_EVENTOS 10
 
 struct epoll_event;
-typedef struct epoll_event t_evento;
+typedef struct epoll_event t_gtls_evt;
 
 typedef struct gtls_sonda {
-    t_evento        *evt;     /* Estructura de eventos (Linux epoll API)  */
-    t_evento *eva[CNTR_MAX_EVENTOS]; /* Df. preparados que tienen eventos */
-    int             ndsf;     /* Nº dscs. de fichero listos (epoll_wait)  */
-    int             ctdr;     /* Orden en la lista de df listos           */
-    int             dfsd;     /* Descriptor sonda de eventos E/S (epoll)  */
+    t_gtls_evt      *evt; /* Lista de dsfs. de interés de la sonda 'epoll'   */
+    t_gtls_evt      *eva; /* Dsfs. en la lista de interés que tienen eventos */
+    int             ndsf; /* Nº dscs. de fichero listos (epoll_wait)         */
+    int             dfsd; /* Df. de la sonda de eventos (instancia 'epoll')  */
 } t_gtls_sonda;
 #endif
 
@@ -104,7 +103,7 @@ typedef struct gtls_toma_es {
     int             cliente;  /* Descriptor cliente (lectura/escritura)    */
     t_gtls_dts_toma *pila;    /* Pila de datos entre el programa y la toma */
     struct addrinfo *infred;  /* Información de red TCP/IP (API Linux)     */
-    t_ctrn_verdad   local;    /* ¿Toma local?                              */
+    t_gtls_verdad   local;    /* ¿Toma local?                              */
     func_inicia     inicia_tls;        /* Iniciar globalmente TLS          */
     func_sesión     ini_sesión_tls;    /* Iniciar sesión TLS               */
     func_diálogo    ini_diálogo_tls;   /* Iniciar diálogo TLS              */

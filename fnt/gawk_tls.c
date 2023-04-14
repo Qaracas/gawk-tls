@@ -68,7 +68,7 @@ typedef char * (*recibe_toma)(t_gtls_toma_es *toma, char **sdrt, size_t *tsr);
 
 typedef struct {
     char           *datos;
-    t_ctrn_verdad  llena  : 1;
+    t_gtls_verdad  llena  : 1;
 } t_gtls_pila;
 
 static t_gtls_ruta *rt;    /* Ruta de conexión en uso                       */

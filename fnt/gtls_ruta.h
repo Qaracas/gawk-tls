@@ -45,7 +45,7 @@ typedef struct gtls_toma_es t_gtls_toma_es;
 typedef enum gtls_verdad {
     gtls_falso  = 0,
     gtls_cierto = 1
-} t_ctrn_verdad;
+} t_gtls_verdad;
 #endif
 
 typedef struct gtls_ruta {
@@ -57,8 +57,8 @@ typedef struct gtls_ruta {
     char            *nodo_remoto;   /* Nombre o dir IP del nodo      */
     char            *puerto_remoto; /* Puerto remoto de E/S          */
     t_gtls_toma_es  *toma;          /* Toma de datos de E/S          */
-    t_ctrn_verdad   cliente : 1;    /* Es de tipo cliente o servidor */
-    t_ctrn_verdad   segura  : 1;    /* Si protocolo = tls es segura  */
+    t_gtls_verdad   cliente : 1;    /* Es de tipo cliente o servidor */
+    t_gtls_verdad   segura  : 1;    /* Si protocolo = tls es segura  */
 } t_gtls_ruta;
 
 /* gtls_nueva_ruta --

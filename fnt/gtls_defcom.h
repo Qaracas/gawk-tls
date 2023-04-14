@@ -77,7 +77,7 @@
 typedef enum gtls_verdad {
     gtls_falso  = 0,
     gtls_cierto = 1
-} t_ctrn_verdad;
+} t_gtls_verdad;
 #endif
 
 typedef struct gtls_error {
