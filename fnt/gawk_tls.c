@@ -764,6 +764,7 @@ gawk_tls_puede_aceptar_fichero(const char *nombre)
 /* 1 ¿Es la toma en uso?
    2 ¿Está registrada? ('creatoma') */
     return (   nombre != NULL
+            && rt != NULL
             && (   strcmp(nombre, rt->nombre) == 0                    /* 1 */
                 || (rt = gtls_busca_ruta_en_serie(nombre)) != NULL)); /* 2 */
 }
