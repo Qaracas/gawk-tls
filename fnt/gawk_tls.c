@@ -667,11 +667,17 @@ gawk_tls_recibe_datos(char **out, awk_input_buf_t *tpent, int *errcode,
     (void) desusado;
     int bulto;
     size_t tpm;
+    char *sr;
     extern t_gtls_pila pila;
     extern size_t v_tpm;
     extern t_gtls_ruta *rt;
     extern recibe_toma recibe;
     extern t_gtls_error gtls_error;
+
+    /* Lee separador de registro cada vez */
+    sr = trae_separador_de_registro();
+    strcpy(rt->toma->pila->sdrt, (const char *) sr);
+    rt->toma->pila->tsr = strlen((const char *) sr);
 
     /* Lee la variable global TPM cada vez */
     if ((tpm = trae_tope_maximo()) != v_tpm) {
