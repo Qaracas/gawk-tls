@@ -68,13 +68,13 @@ typedef char * (*recibe_toma)(t_gtls_toma_es *toma, char **sdrt, size_t *tsr);
 
 typedef struct {
     char           *datos;
-    t_gtls_verdad  llena  : 1;
+    t_gtls_verdad  llena : 1;
 } t_gtls_pila;
 
 static t_gtls_ruta *rt;    /* Ruta de conexión en uso                       */
 static recibe_toma recibe; /* Puntero a función que recibe datos de la toma */
 static size_t      v_tpm;  /* Toma el valor de la variable global TPM       */
-static t_gtls_pila pila;   /* Para guardar los datos sobrantes de la pila   */
+static t_gtls_pila v_pila;   /* Para guardar los datos sobrantes de la pila   */
 
 /*
  * finaliza_gawk_tls --
@@ -86,9 +86,12 @@ finaliza_gawk_tls(void *data, int exit_status)
 {
     (void) data;
     (void) exit_status;
+    extern t_gtls_pila v_pila;
 
-    if (pila.llena)
-        gawk_free(pila.datos);
+    if (v_pila.datos != NULL) {
+        gawk_free(v_pila.datos);
+        v_pila.datos = NULL;
+    }
 }
 
 /* pon_num_en_coleccion --
@@ -667,7 +670,7 @@ gawk_tls_recibe_datos(char **out, awk_input_buf_t *tpent, int *errcode,
     (void) desusado;
     int bulto;
     size_t tpm;
-    extern t_gtls_pila pila;
+    extern t_gtls_pila v_pila;
     extern size_t v_tpm;
     extern t_gtls_ruta *rt;
     extern recibe_toma recibe;
@@ -685,18 +688,20 @@ gawk_tls_recibe_datos(char **out, awk_input_buf_t *tpent, int *errcode,
             recibe = &gtls_recibe_flujo_toma;
     }
 
-    if (tpm  != v_tpm || pila.llena) {
+    if (tpm  != v_tpm || v_pila.llena) {
         /* Antes de borrar el tope devolvemos el flujo restante */
-        if (pila.llena)
-            gawk_free(pila.datos);
-        bulto = gtls_vacía_tope(rt->toma, &pila.datos, tpm, rt_start, rt_len);
+        if (v_pila.datos != NULL) {
+            gawk_free(v_pila.datos);
+            v_pila.datos = NULL;
+        }
+        bulto = gtls_vacía_tope(rt->toma, &v_pila.datos, tpm, rt_start, rt_len);
 
         if (bulto > 0) {
-            pila.llena = gtls_cierto;
-            *out = pila.datos;
+            v_pila.llena = gtls_cierto;
+            *out = v_pila.datos;
         } else {
 borra_tope:
-            pila.llena = gtls_falso;
+            v_pila.llena = gtls_falso;
             gtls_borra_tope(&rt->toma->pila->tope);
             gtls_nuevo_tope(&rt->toma->pila->tope, tpm);
             goto recibe_datos;
@@ -818,7 +823,9 @@ static awk_two_way_processor_t gawk_tls_es = {
 static awk_bool_t
 inicia_gawk_tls()
 {
-    extern t_gtls_pila pila;
+    extern t_gtls_pila v_pila;
+
+    v_pila.datos = NULL;
 
     register_ext_version(ext_version);
     register_two_way_processor(&gawk_tls_es);
