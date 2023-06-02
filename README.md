@@ -7,7 +7,7 @@
 ## Requisitos
 
 * Sistema operativo GNU/Linux
-* Implementación GNU del lenguaje de programción AWK - gawk (>= 5.1.0)
+* Implementación GNU del lenguaje de programación AWK - gawk (>= 5.1.0)
 * Biblioteca GNU TLS. Ficheros de desarrollo - libgnutls28-dev (>= 3.7.1-5)
 * Biblioteca GNU TLS. Utilidades en línea de comandos - gnutls-bin (>= 3.7.1-5)
 * Gestor de compilación y enlazado - pkg-config (>= 0.29.2-1)
