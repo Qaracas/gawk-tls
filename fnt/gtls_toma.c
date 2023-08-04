@@ -282,6 +282,7 @@ gtls_recibe_linea_toma(t_gtls_toma_es *toma, char **sdrt, size_t *tsr)
                        (const char*) toma->pila->sdrt);
     *tsr = toma->pila->tsr;
 
+    /* Ajuste línea partida */
     if (*sdrt == NULL) {
         if (tope->ptrreg == 0) {
             gtls_error(CNTR_ERROR, gtls_msj_error("%s %s",
