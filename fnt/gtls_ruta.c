@@ -72,7 +72,7 @@ __procesa_nombre_ruta(const char *nombre, t_gtls_ruta **ruta)
         || regcomp(&expreg_cli, erp_cli, REG_EXTENDED)) {
         gtls_error(CNTR_ERROR, gtls_msj_error("%s %s",
                              "gtls_nueva_ruta()",
-                             "Error interno al compilar e.r."));
+                             "nombre de ruta incorrecto"));
         return CNTR_ERROR;
     }
 
