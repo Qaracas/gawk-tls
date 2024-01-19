@@ -174,7 +174,7 @@ gtls_rcbl_llena_tope(t_gtls_toma_es *toma)
 
     /* Sumar al tamaño de datos recibido los datos que ya había en el tope. Ver
        "Ajuste línea partida" en gtls_toma.c: */
-    if (tope->ldatos < tope->ptrreg)
+    if (tope->ptrreg)
         tope->ldatos = tope->ldatos + tope->ptrreg;
 
     tope->ptrreg = 0;
